@@ -5,7 +5,7 @@ import { randomUUID } from 'node:crypto';
 
 const PORT = Number(process.env.PORT ?? 4177);
 const users = new Map(); // email -> {id,email,password,meta}
-const tables = { screens: [], class_lists: [], profiles: [], school_templates: [], screen_shares: [], share_links: [], school_settings: [] };
+const tables = { screens: [], class_lists: [], profiles: [], school_templates: [], screen_shares: [], share_links: [], school_settings: [], admin_audit: [] };
 let lastTs = 0;
 const nowIso = () => new Date((lastTs = Math.max(Date.now(), lastTs + 1))).toISOString();
 
@@ -26,7 +26,7 @@ const uidFrom = (req) => {
 const cors = (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', req.headers['access-control-request-headers'] ?? '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
 };
 const send = (res, code, body) => {
   res.writeHead(code, { 'Content-Type': 'application/json' });
@@ -69,11 +69,51 @@ http.createServer(async (req, res) => {
       return send(res, 200, makeSession(u));
     }
     if (path === '/auth/v1/logout') return send(res, 204);
+    if (path === '/auth/v1/user' && req.method === 'PUT') {
+      const uid = uidFrom(req);
+      const u = [...users.values()].find((x) => x.id === uid);
+      if (!u) return send(res, 401, { msg: 'no user' });
+      const { password } = await readBody(req);
+      if (password) u.password = password;
+      return send(res, 200, { id: u.id, email: u.email });
+    }
+    if (path === '/__makeadmin') {
+      const p = tables.profiles.find((x) => x.display_name === url.searchParams.get('nick'));
+      if (p) p.role = 'admin';
+      return send(res, 200, { ok: !!p });
+    }
 
     if (path.startsWith('/rest/v1/')) {
       const uid = uidFrom(req);
       if (!uid) return send(res, 401, { code: 'PGRST301', message: 'JWT required' });
       const name = path.slice('/rest/v1/'.length);
+      const me = tables.profiles.find((x) => x.id === uid);
+      const isAdmin = me?.role === 'admin';
+      if (name.startsWith('rpc/')) {
+        const fn = name.slice(4);
+        const args = await readBody(req);
+        if (!fn.startsWith('admin_')) return send(res, 404, { message: 'unknown rpc' });
+        if (!isAdmin) return send(res, 403, { code: '42501', message: 'forbidden' });
+        if (fn === 'admin_user_overview') {
+          return send(res, 200, tables.profiles.map((p) => ({ ...p, created_at: nowIso(), screens_count: tables.screens.filter((s) => s.owner_id === p.id).length, classes_count: tables.class_lists.filter((c) => c.owner_id === p.id).length })));
+        }
+        const target = tables.profiles.find((p) => p.id === args.target);
+        if (!target) return send(res, 400, { code: 'P0002', message: 'user not found' });
+        if (fn === 'admin_reset_password') {
+          if ((args.new_password ?? '').length < 8) return send(res, 400, { code: '22023', message: 'password length' });
+          users.get(target.email).password = args.new_password;
+          tables.admin_audit.push({ id: tables.admin_audit.length + 1, action: 'reset_password', target_nick: target.display_name, detail: '', created_at: nowIso() });
+          return send(res, 204);
+        }
+        if (fn === 'admin_delete_user') {
+          if (target.id === uid) return send(res, 403, { code: '42501', message: 'cannot delete self' });
+          tables.admin_audit.push({ id: tables.admin_audit.length + 1, action: 'delete_user', target_nick: target.display_name, detail: '', created_at: nowIso() });
+          users.delete(target.email);
+          for (const t of ['profiles', 'screens', 'class_lists']) tables[t] = tables[t].filter((r) => (t === 'profiles' ? r.id : r.owner_id) !== target.id);
+          return send(res, 204);
+        }
+        return send(res, 404, { message: 'unknown rpc' });
+      }
       const table = tables[name];
       if (!table) return send(res, 404, { message: 'unknown table' });
       const owned = name === 'screens' || name === 'class_lists';
@@ -82,7 +122,8 @@ http.createServer(async (req, res) => {
         let rows = filterRows(table, params);
         if (name === 'profiles') rows = rows.filter((r) => r.id === uid);
         if (name === 'screens') rows = rows.filter((r) => r.owner_id === uid); // bez zdieľania v tejto náhrade
-        if (name === 'class_lists') rows = rows.filter((r) => r.owner_id === uid);
+        if (name === 'class_lists' && !isAdmin) rows = rows.filter((r) => r.owner_id === uid);
+        if (name === 'admin_audit' && !isAdmin) rows = [];
         return send(res, 200, rows);
       }
       if (req.method === 'POST') {
@@ -105,9 +146,15 @@ http.createServer(async (req, res) => {
         return send(res, 201, saved);
       }
       if (req.method === 'DELETE') {
-        const del = filterRows(table, params).filter((r) => !owned || r.owner_id === uid);
+        const del = filterRows(table, params).filter((r) => !owned || r.owner_id === uid || (name === 'class_lists' && isAdmin));
         del.forEach((r) => table.splice(table.indexOf(r), 1));
         return send(res, 200, del);
+      }
+      if (req.method === 'PATCH' && name === 'class_lists' && isAdmin) {
+        const body = await readBody(req);
+        const rows = filterRows(table, params);
+        rows.forEach((r) => Object.assign(r, body, { updated_at: nowIso() }));
+        return send(res, 200, rows);
       }
       return send(res, 200, []);
     }

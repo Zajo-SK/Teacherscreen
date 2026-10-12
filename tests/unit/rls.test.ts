@@ -39,13 +39,18 @@ beforeAll(async () => {
   await db.exec(`
     create role anon nologin; create role authenticated nologin;
     create schema auth;
-    create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb);
+    create table auth.users (id uuid primary key, email text, raw_user_meta_data jsonb default '{}'::jsonb, encrypted_password text default '', updated_at timestamptz);
+    create table auth.sessions (id uuid primary key default gen_random_uuid(), user_id uuid references auth.users (id) on delete cascade);
+    create schema extensions;
+    create function extensions.gen_salt(t text) returns text language sql as $$ select 'salt' $$;
+    create function extensions.crypt(pw text, salt text) returns text language sql as $$ select 'hash:' || pw $$;
     create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
     grant usage on schema auth to anon, authenticated;
     grant usage on schema public to anon, authenticated;
   `);
   await db.exec(readFileSync('supabase/migrations/0001_init.sql', 'utf8'));
   await db.exec(readFileSync('supabase/migrations/0002_class_lists.sql', 'utf8'));
+  await db.exec(readFileSync('supabase/migrations/0003_admin.sql', 'utf8'));
   for (const [id, mail] of [[A, 'a@skola.sk'], [B, 'b@skola.sk'], [C, 'c@skola.sk'], [ADMIN, 'admin@skola.sk']]) {
     await db.query('insert into auth.users (id, email) values ($1, $2)', [id, mail]);
   }
@@ -193,10 +198,8 @@ describe('RLS: triedy (zoznamy žiakov)', () => {
     classId = r.rows[0]!.id;
     expect(((await as(A, () => db.query('select * from public.class_lists'))) as { rows: unknown[] }).rows).toHaveLength(1);
   });
-  it('iný učiteľ, administrátor ani anonym zoznam nevidia', async () => {
-    for (const u of [B, ADMIN]) {
-      expect(((await as(u, () => db.query('select * from public.class_lists where id = $1', [classId]))) as { rows: unknown[] }).rows).toHaveLength(0);
-    }
+  it('iný učiteľ ani anonym zoznam nevidia', async () => {
+    expect(((await as(B, () => db.query('select * from public.class_lists where id = $1', [classId]))) as { rows: unknown[] }).rows).toHaveLength(0);
     expect(await denied(null, 'select * from public.class_lists')).toBe(true);
   });
   it('cudzí učiteľ ho nemôže zmeniť, zmazať ani prepísať cez upsert s rovnakým ID', async () => {
@@ -216,8 +219,58 @@ describe('RLS: triedy (zoznamy žiakov)', () => {
     expect(await denied(A, 'update public.class_lists set owner_id = $1 where id = $2', [B, classId])).toBe(true);
     expect(await denied(A, `insert into public.class_lists (name, names) values ('x', $1::jsonb)`, [JSON.stringify(Array.from({ length: 201 }, (_, i) => `m${i}`))])).toBe(true);
   });
+  it('administrátor môže triedu cudzieho učiteľa vidieť, upraviť (so záznamom) – učiteľ nie', async () => {
+    expect(((await as(ADMIN, () => db.query('select * from public.class_lists where id = $1', [classId]))) as { rows: unknown[] }).rows).toHaveLength(1);
+    const u = (await as(ADMIN, () => db.query(`update public.class_lists set name = '5.A (admin)' where id = $1`, [classId]))) as { affectedRows: number };
+    expect(u.affectedRows).toBe(1);
+    expect((await q(`select action, target_nick from public.admin_audit where action = 'update_class'`))[0]).toEqual({ action: 'update_class', target_nick: 'a@skola.sk' });
+    await as(ADMIN, () => db.query(`update public.class_lists set name = '5.A' where id = $1`, [classId]));
+  });
   it('vlastník môže triedu zmazať', async () => {
     const d = (await as(A, () => db.query('delete from public.class_lists where id = $1', [classId]))) as { affectedRows: number };
     expect(d.affectedRows).toBe(1);
+  });
+});
+
+describe('Administrácia účtov', () => {
+  const D = '00000000-0000-0000-0000-0000000000d1';
+  it('prehľad používateľov s počtami vidí iba admin', async () => {
+    const r = (await as(ADMIN, () => db.query<{ screens_count: string }>('select * from public.admin_user_overview()'))) as { rows: { id: string; screens_count: string }[] };
+    expect(r.rows.length).toBeGreaterThanOrEqual(4);
+    expect(Number(r.rows.find((x) => x.id === A)!.screens_count)).toBeGreaterThanOrEqual(1);
+    expect(await denied(A, 'select * from public.admin_user_overview()')).toBe(true);
+    expect(await denied(null, 'select * from public.admin_user_overview()')).toBe(true);
+  });
+  it('admin vidí iba počty plôch, nie ich obsah', async () => {
+    expect(((await as(ADMIN, () => db.query('select * from public.screens'))) as { rows: unknown[] }).rows).toHaveLength(0);
+  });
+  it('reset hesla: admin nastaví heslo a zruší relácie; učiteľ ani anonym nemôže; krátke heslo sa odmietne', async () => {
+    await db.query(`insert into auth.sessions (user_id) values ($1)`, [B]);
+    await as(ADMIN, () => db.query(`select public.admin_reset_password($1, 'nove-heslo-123')`, [B]));
+    expect((await q('select encrypted_password from auth.users where id = $1', [B]))[0]).toEqual({ encrypted_password: 'hash:nove-heslo-123' });
+    expect(await q('select 1 from auth.sessions where user_id = $1', [B])).toHaveLength(0);
+    expect((await q(`select action, target_nick from public.admin_audit where action = 'reset_password'`))[0]).toMatchObject({ target_nick: 'b@skola.sk' });
+    expect(await denied(A, `select public.admin_reset_password($1, 'nove-heslo-123')`, [B])).toBe(true);
+    expect(await denied(null, `select public.admin_reset_password($1, 'nove-heslo-123')`, [B])).toBe(true);
+    expect(await denied(ADMIN, `select public.admin_reset_password($1, 'krátke')`, [B])).toBe(true);
+    expect((await q('select encrypted_password from auth.users where id = $1', [A]))[0]).toEqual({ encrypted_password: '' });
+  });
+  it('zmazanie účtu odstráni profil, plochy, triedy aj zdieľanie; seba nemožno zmazať; učiteľ nemôže', async () => {
+    await db.query('insert into auth.users (id, email) values ($1, $2)', [D, 'd@skola.sk']);
+    await as(D, () => db.query(`insert into public.screens (name, data) values ('D plocha', '{}')`));
+    await as(D, () => db.query(`insert into public.class_lists (name, names) values ('D trieda', '[]')`));
+    expect(await denied(A, 'select public.admin_delete_user($1)', [D])).toBe(true);
+    expect(await denied(ADMIN, 'select public.admin_delete_user($1)', [ADMIN])).toBe(true);
+    await as(ADMIN, () => db.query('select public.admin_delete_user($1)', [D]));
+    for (const t of ['profiles', 'screens', 'class_lists']) {
+      expect(await q(`select 1 from public.${t} where ${t === 'profiles' ? 'id' : 'owner_id'} = $1`, [D]), t).toHaveLength(0);
+    }
+    expect((await q(`select action, target_nick from public.admin_audit where action = 'delete_user'`))[0]).toMatchObject({ target_nick: 'd@skola.sk' });
+  });
+  it('záznam akcií číta iba admin a nikto ho nemôže meniť', async () => {
+    expect(((await as(ADMIN, () => db.query('select * from public.admin_audit'))) as { rows: unknown[] }).rows.length).toBeGreaterThan(0);
+    expect(((await as(A, () => db.query('select * from public.admin_audit'))) as { rows: unknown[] }).rows).toHaveLength(0);
+    expect(await denied(ADMIN, `delete from public.admin_audit`)).toBe(true);
+    expect(await denied(ADMIN, `insert into public.admin_audit (action) values ('podvrh')`)).toBe(true);
   });
 });

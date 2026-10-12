@@ -66,23 +66,25 @@ Učiteľ sa registruje **prezývkou (nick) a heslom** – bez e‑mailu. Po prih
 * **Plochy:** nahrávajú sa a sťahujú automaticky. Pri úprave tej istej plochy na dvoch zariadeniach sa nič nestratí – lokálna verzia sa zachová ako kópia „(lokálna verzia)“. Zmazanie sa prenáša medzi zariadeniami.
 * **Triedy (zoznamy žiakov):** tlačidlo **Triedy** na domovskej stránke. Triedu (napr. 5.A) vyberiete vo widgetoch *Náhodný výber žiaka* a *Rozdeľovač skupín*; úprava zoznamu sa prejaví vo všetkých widgetoch. Triedy sú uložené lokálne; **na server sa posielajú len po výslovnom zapnutí** voľby „Synchronizovať zoznamy tried“ v účte (predvolene vypnuté). Vidí ich iba vlastník (RLS), nie administrátor ani iní učitelia; dajú sa kedykoľvek zmazať zo servera. Mená žiakov v plochách sa na server neposielajú nikdy – plocha nesie iba odkaz na triedu.
 * **Spoločný počítač:** „Odhlásiť a odstrániť dáta z tohto zariadenia“ dokončí synchronizáciu a vymaže lokálne plochy a triedy. Ak sa na zariadení s cudzími lokálnymi dátami prihlási iný učiteľ, dáta sa nenahrajú automaticky – aplikácia sa opýta (pridať do účtu / odstrániť).
-* **Heslo sa nedá obnoviť e‑mailom** (účet nemá e‑mail). Zabudnuté heslo vie administrátor Supabase projektu resetovať v paneli Authentication.
+* **Heslo sa nedá obnoviť e‑mailom** (účet nemá e‑mail). Zabudnuté heslo vám resetuje administrátor školy v *Správe školy*.
 
 ## Backend (Supabase) – nastavenie
 
 Bez konfigurácie sa žiadne cloudové prvky nezobrazujú a knižnica Supabase sa ani nestiahne.
 
 1. Na supabase.com vytvorte (bezplatný) projekt.
-2. V *SQL Editor* spustite postupne `supabase/migrations/0001_init.sql` a `0002_class_lists.sql`.
+2. V *SQL Editor* spustite postupne `supabase/migrations/0001_init.sql`, `0002_class_lists.sql` a `0003_admin.sql`.
 3. *Authentication → Providers → Email*: ponechajte zapnuté, ale **vypnite „Confirm email“** (prezývka nemá skutočný e‑mail, nič sa nikam neposiela).
 4. *Project Settings → API*: skopírujte *Project URL* a verejný kľúč *anon*.
    * lokálne: `.env` podľa `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`);
    * GitHub Pages: v repozitári *Settings → Secrets and variables → Actions → **Variables*** pridajte `VITE_SUPABASE_URL` a `VITE_SUPABASE_ANON_KEY` a spustite workflow znova. (Anon kľúč je verejný z princípu – dáta chráni RLS. Kľúč `service_role` sem **nikdy** nevkladajte.)
 5. Prvého administrátora určíte v SQL: `update public.profiles set role = 'admin' where email = 'prezyvka@teacherscreen.example.com';` (interný e‑mail = prezývka + `@teacherscreen.example.com`). Ďalších spravuje administrátor v aplikácii (`#/admin`).
 
+**Administrátor školy** (stránka *Správa školy*, `#/admin`) môže: vidieť všetky účty s počtom plôch a tried, meniť roly a právo zdieľať, **resetovať heslá** (nastaví dočasné heslo a odhlási používateľa zo všetkých zariadení; učiteľ si ho potom zmení v účte), **zmazať účet** (so všetkými jeho plochami a triedami na serveri; vyžaduje napísať prezývku), **spravovať triedy** ľubovoľného učiteľa (upraviť zoznam, premenovať, zmazať) a prezerať **záznam akcií** (každý reset, zmazanie a zásah do tried sa zapisuje a nedá sa zmeniť). Súkromné plochy učiteľov administrátor nevidí – iba ich počet. Funkcie bežia ako databázové funkcie s kontrolou roly (bez Edge Functions a bez tajných kľúčov vo frontende). Seba samého administrátor zmazať ani resetovať nemôže.
+
 Roly: **návštevník** (bez účtu – plná lokálna funkčnosť), **učiteľ** (vlastné plochy a triedy, kópie školských šablón, zdieľanie podľa oprávnenia), **administrátor školy** (školské šablóny, role a právo zdieľať, predvolené hodnoty).
 
-Bezpečnosť: všetky tabuľky majú RLS. Súkromné plochy a triedy vidí iba vlastník (a príjemcovia zdieľania plôch); ani administrátor nie. Zdieľanie s učiteľom (podľa prezývky) má oprávnenie `view`/`edit`; odkazy sú náhodné tokeny s expiráciou 30 dní a dajú sa zrušiť. Politiky overuje `tests/unit/rls.test.ts` na skutočnej PostgreSQL (PGlite). Klientsku synchronizáciu (registrácia, prihlásenie dvoch zariadení, zmeny, mazanie) overuje `tests/e2e/sync.spec.ts` proti lokálnej náhrade Supabase (`tests/e2e/fake-supabase.mjs`). Požiadavky na server majú 10 s limit a pri výpadku sa zobrazí zrozumiteľná správa; lokálna práca nie je dotknutá.
+Bezpečnosť: všetky tabuľky majú RLS. Súkromné plochy vidí iba vlastník (a príjemcovia zdieľania); triedy vlastník a administrátor školy (so záznamom akcií). Zdieľanie s učiteľom (podľa prezývky) má oprávnenie `view`/`edit`; odkazy sú náhodné tokeny s expiráciou 30 dní a dajú sa zrušiť. Politiky a administrátorské funkcie overuje `tests/unit/rls.test.ts` na skutočnej PostgreSQL (PGlite; náhrada pgcrypto je len stub, reálne hashovanie hesiel v Supabase je overené iba manuálne). Klientsku synchronizáciu (registrácia, prihlásenie dvoch zariadení, zmeny, mazanie) overuje `tests/e2e/sync.spec.ts` proti lokálnej náhrade Supabase (`tests/e2e/fake-supabase.mjs`). Požiadavky na server majú 10 s limit a pri výpadku sa zobrazí zrozumiteľná správa; lokálna práca nie je dotknutá.
 
 ## Nasadenie
 

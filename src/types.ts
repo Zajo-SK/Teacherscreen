@@ -77,6 +77,14 @@ export interface Deck {
   updatedAt: number;
 }
 
+/** Zoznam žiakov jednej triedy. Ukladá sa lokálne; do cloudu iba ak to učiteľ výslovne zapne. */
+export interface ClassList {
+  id: string;
+  name: string;
+  names: string[];
+  updatedAt: number;
+}
+
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 export interface Settings {
@@ -85,8 +93,10 @@ export interface Settings {
   /** Zapnuté animácie (náhodný výber, kocky). */
   animations: boolean;
   snapToGrid: boolean;
+  /** Synchronizovať zoznamy tried (mená žiakov) do cloudu – predvolene vypnuté. */
+  syncClasses: boolean;
 }
 
-export const DEFAULT_SETTINGS: Settings = { theme: 'system', sound: true, animations: true, snapToGrid: true };
+export const DEFAULT_SETTINGS: Settings = { theme: 'system', sound: true, animations: true, snapToGrid: true, syncClasses: false };
 
 export const DEFAULT_BACKGROUND: Background = { kind: 'gradient', value: 'linear-gradient(135deg,#dbeafe 0%,#e0e7ff 100%)' };

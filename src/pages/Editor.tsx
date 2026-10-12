@@ -6,6 +6,7 @@ import { t } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { fullscreenSupported, toggleFullscreen, useFullscreen } from '@/lib/fullscreen';
 import { useApp } from '@/store/useApp';
+import { ScreenRuntime } from '@/widgets/ScreenRuntime';
 import { Palette } from '@/editor/Palette';
 import { Inspector } from '@/editor/Inspector';
 import { SelectionBar } from '@/editor/SelectionBar';
@@ -127,7 +128,9 @@ export function Editor({ id }: { id: string }) {
         </main>
         {rightOpen && (
           <aside className="absolute inset-y-0 right-0 z-30 w-80 overflow-auto border-l border-line bg-surface shadow-xl xl:static xl:shadow-none" data-testid="inspector">
-            <Inspector screenId={id} />
+            <ScreenRuntime screenId={id} scale={1}>
+              <Inspector screenId={id} />
+            </ScreenRuntime>
           </aside>
         )}
       </div>

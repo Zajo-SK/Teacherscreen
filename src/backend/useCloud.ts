@@ -1,48 +1,29 @@
 import { create } from 'zustand';
+import { useApp } from '@/store/useApp';
 import { api, BackendError, type Profile } from './api';
 import { getSupabase, isBackendConfigured } from './client';
+import { emailToNick, nickToEmail, validateNick } from './nick';
+import { getSyncOwner, resetSyncState, runSync, setSyncOwner, startAutoSync, stopAutoSync } from './sync';
 
 export type CloudStatus = 'unconfigured' | 'loading' | 'signedOut' | 'signedIn' | 'offline';
+export type SyncStatus = 'idle' | 'syncing' | 'ok' | 'offline' | 'error' | 'needsChoice';
 
 interface CloudState {
   status: CloudStatus;
   userId: string | null;
-  email: string | null;
+  /** Zobrazovaná prezývka. */
+  nick: string | null;
   profile: Profile | null;
-  /** Poslednú chybu zobrazuje UI; nikdy nebráni lokálnej práci. */
+  syncStatus: SyncStatus;
+  lastSyncAt: number | null;
+  /** Kľúč prekladu poslednej chyby; UI ju zobrazuje, nikdy nebráni lokálnej práci. */
   error: string | null;
   init: () => Promise<void>;
-  signIn: (email: string, password: string) => Promise<boolean>;
-  signUp: (email: string, password: string) => Promise<'confirm' | 'signedIn' | false>;
-  signOut: () => Promise<void>;
-}
-
-const LINKS_KEY = 'ts.cloudLinks';
-
-/** Väzba lokálna obrazovka → vzdialená obrazovka (uložená len v tomto zariadení). */
-export function getCloudLink(localId: string): string | null {
-  try {
-    return (JSON.parse(localStorage.getItem(LINKS_KEY) ?? '{}') as Record<string, string>)[localId] ?? null;
-  } catch {
-    return null;
-  }
-}
-export function setCloudLink(localId: string, remoteId: string): void {
-  try {
-    const all = JSON.parse(localStorage.getItem(LINKS_KEY) ?? '{}') as Record<string, string>;
-    all[localId] = remoteId;
-    localStorage.setItem(LINKS_KEY, JSON.stringify(all));
-  } catch {
-    /* ignorované */
-  }
-}
-export function findLocalByRemote(remoteId: string): string | null {
-  try {
-    const all = JSON.parse(localStorage.getItem(LINKS_KEY) ?? '{}') as Record<string, string>;
-    return Object.entries(all).find(([, r]) => r === remoteId)?.[0] ?? null;
-  } catch {
-    return null;
-  }
+  signIn: (nick: string, password: string) => Promise<boolean>;
+  signUp: (nick: string, password: string) => Promise<boolean>;
+  signOut: (opts?: { wipeLocal?: boolean }) => Promise<void>;
+  /** Vyrieši situáciu, keď sa na zariadení s cudzími lokálnymi dátami prihlási iný používateľ. */
+  resolveOwnerChoice: (choice: 'merge' | 'wipe') => Promise<void>;
 }
 
 export function describeError(e: unknown): string {
@@ -50,22 +31,31 @@ export function describeError(e: unknown): string {
   return 'cloud.failed';
 }
 
+const isNetwork = (m: string) => /network|fetch|abort|failed to fetch|load failed/i.test(m);
+
 export const useCloud = create<CloudState>()((set, get) => {
   async function loadSession() {
     try {
       const sb = await getSupabase();
       const { data } = await sb.auth.getSession();
       const user = data.session?.user;
-      if (!user) return set({ status: 'signedOut', userId: null, email: null, profile: null, error: null });
+      if (!user) {
+        stopAutoSync();
+        return set({ status: 'signedOut', userId: null, nick: null, profile: null, error: null, syncStatus: 'idle' });
+      }
+      const fallbackNick = emailToNick(user.email);
       let profile: Profile | null = null;
       try {
         profile = await api.getProfile(user.id);
       } catch (e) {
         if (e instanceof BackendError && e.kind === 'offline') {
-          return set({ status: 'offline', userId: user.id, email: user.email ?? null, profile: null, error: 'cloud.offline' });
+          set({ status: 'signedIn', userId: user.id, nick: fallbackNick, profile: null, error: null, syncStatus: 'offline' });
+          startAutoSync();
+          return;
         }
       }
-      set({ status: 'signedIn', userId: user.id, email: user.email ?? null, profile, error: null });
+      set({ status: 'signedIn', userId: user.id, nick: profile?.display_name || fallbackNick, profile, error: null });
+      startAutoSync();
     } catch {
       set({ status: 'offline', error: 'cloud.offline' });
     }
@@ -74,8 +64,10 @@ export const useCloud = create<CloudState>()((set, get) => {
   return {
     status: isBackendConfigured ? 'loading' : 'unconfigured',
     userId: null,
-    email: null,
+    nick: null,
     profile: null,
+    syncStatus: 'idle',
+    lastSyncAt: null,
     error: null,
     async init() {
       if (!isBackendConfigured) return;
@@ -83,53 +75,81 @@ export const useCloud = create<CloudState>()((set, get) => {
       try {
         const sb = await getSupabase();
         sb.auth.onAuthStateChange((event) => {
-          if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') void loadSession();
+          if (event === 'SIGNED_OUT') void loadSession();
         });
       } catch {
         /* offline */
       }
     },
-    async signIn(email, password) {
+    async signIn(nickRaw, password) {
+      const v = validateNick(nickRaw);
+      if (!v.ok) return set({ error: 'cloud.nickInvalid' }), false;
       try {
         const sb = await getSupabase();
-        const { error } = await sb.auth.signInWithPassword({ email, password });
+        const { error } = await sb.auth.signInWithPassword({ email: nickToEmail(v.nick), password });
         if (error) {
-          set({ error: /network|fetch|abort/i.test(error.message) ? 'cloud.offline' : 'cloud.badCredentials' });
+          set({ error: isNetwork(error.message) ? 'cloud.offline' : 'cloud.badCredentials' });
           return false;
         }
         await loadSession();
         return true;
       } catch {
-        set({ error: 'cloud.offline', status: get().status === 'signedIn' ? 'signedIn' : 'offline' });
+        set({ error: 'cloud.offline' });
         return false;
       }
     },
-    async signUp(email, password) {
+    async signUp(nickRaw, password) {
+      const v = validateNick(nickRaw);
+      if (!v.ok) return set({ error: 'cloud.nickInvalid' }), false;
+      if (password.length < 8) return set({ error: 'cloud.passwordShort' }), false;
       try {
         const sb = await getSupabase();
-        const { data, error } = await sb.auth.signUp({ email, password });
+        const { data, error } = await sb.auth.signUp({ email: nickToEmail(v.nick), password, options: { data: { display_name: v.nick } } });
         if (error) {
-          set({ error: /network|fetch|abort/i.test(error.message) ? 'cloud.offline' : 'cloud.signUpFailed' });
+          set({ error: isNetwork(error.message) ? 'cloud.offline' : /already|registered|exists/i.test(error.message) ? 'cloud.nickTaken' : 'cloud.signUpFailed' });
           return false;
         }
-        if (data.session) {
-          await loadSession();
-          return 'signedIn';
+        // Supabase pri už existujúcom používateľovi (a zapnutom potvrdzovaní) vráti „úspech“ bez session.
+        if (!data.session) {
+          set({ error: 'cloud.confirmRequired' });
+          return false;
         }
-        return 'confirm';
+        await loadSession();
+        return true;
       } catch {
         set({ error: 'cloud.offline' });
         return false;
       }
     },
-    async signOut() {
+    async signOut(opts = {}) {
+      stopAutoSync();
+      const uid = get().userId;
       try {
         const sb = await getSupabase();
         await sb.auth.signOut();
       } catch {
         /* lokálne odhlásenie prebehne aj bez servera */
       }
-      set({ status: 'signedOut', userId: null, email: null, profile: null, error: null });
+      if (opts.wipeLocal) {
+        useApp.getState().wipeLocal();
+        await useApp.getState().flush();
+        setSyncOwner(null);
+        if (uid) resetSyncState(uid);
+      }
+      set({ status: 'signedOut', userId: null, nick: null, profile: null, error: null, syncStatus: 'idle' });
+    },
+    async resolveOwnerChoice(choice) {
+      const uid = get().userId;
+      if (!uid) return;
+      if (choice === 'wipe') {
+        useApp.getState().wipeLocal();
+        await useApp.getState().flush();
+      }
+      resetSyncState(uid);
+      setSyncOwner(uid);
+      set({ syncStatus: 'idle' });
+      void runSync();
+      void getSyncOwner();
     },
   };
 });

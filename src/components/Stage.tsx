@@ -7,7 +7,7 @@ import { clamp, fitRect, rectsIntersect, snap, type Rect } from '@/lib/geometry'
 import { contrastText } from '@/lib/color';
 import { sortByZ } from '@/lib/screenOps';
 import { getWidgetDefinition } from '@/widgets/registry';
-import { RuntimeContext, type WidgetRuntime } from '@/widgets/runtime';
+import { ScreenRuntime } from '@/widgets/ScreenRuntime';
 
 export function backgroundStyle(bg: Background): CSSProperties {
   switch (bg.kind) {
@@ -138,8 +138,6 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
   const settings = useApp((s) => s.settings);
   const select = useApp((s) => s.select);
   const commitRects = useApp((s) => s.commitRects);
-  const patchConfigStore = useApp((s) => s.patchConfig);
-  const patchWidgetStore = useApp((s) => s.patchWidget);
 
   const hostRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -300,18 +298,6 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
 
   const widgets = useMemo(() => (screen ? sortByZ(screen.widgets) : []), [screen]);
 
-  const runtime = useMemo<WidgetRuntime>(
-    () => ({
-      sound: settings.sound,
-      animations: settings.animations,
-      scale,
-      widgets: screen?.widgets ?? [],
-      patchConfig: (id, patch) => patchConfigStore(screenId, id, patch),
-      patchGeometry: (id, patch) => patchWidgetStore(screenId, id, patch),
-    }),
-    [settings.sound, settings.animations, scale, screen?.widgets, screenId, patchConfigStore, patchWidgetStore],
-  );
-
   // Pri zmene obrazovky zruš rozpracované gestá.
   useEffect(() => () => {
     gesture.current = null;
@@ -325,7 +311,7 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
   return (
     <div ref={hostRef} className="relative flex size-full items-center justify-center overflow-hidden" data-testid="stage-host">
       <div style={{ width: canvas.w * scale, height: canvas.h * scale, position: 'relative', flex: 'none', boxShadow: mode === 'edit' ? '0 10px 40px rgba(0,0,0,.25)' : undefined, borderRadius: mode === 'edit' ? 8 : 0, overflow: 'hidden', ...backgroundStyle(screen.background) }}>
-        <RuntimeContext.Provider value={runtime}>
+        <ScreenRuntime screenId={screenId} scale={scale}>
           <div
             ref={stageRef}
             data-testid="stage"
@@ -377,7 +363,7 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
             )}
             {marquee && <div style={{ position: 'absolute', left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h, border: `${2 / scale}px dashed var(--primary)`, background: 'rgba(37,99,235,.12)', zIndex: 10001, pointerEvents: 'none' }} />}
           </div>
-        </RuntimeContext.Provider>
+        </ScreenRuntime>
       </div>
     </div>
   );

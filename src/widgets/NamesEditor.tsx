@@ -76,3 +76,55 @@ export function NamesEditor({ names, onChange, max = 200 }: { names: string[]; o
     </div>
   );
 }
+
+/** Výber uloženej triedy + uloženie aktuálneho zoznamu ako novej triedy. */
+export function ClassPicker({
+  classes,
+  classId,
+  hasNames,
+  onPick,
+  onSave,
+}: {
+  classes: { id: string; name: string; names: string[] }[];
+  classId: string | null;
+  hasNames: boolean;
+  onPick: (id: string | null) => void;
+  onSave: (name: string) => void;
+}) {
+  const [name, setName] = useState('');
+  return (
+    <div className="mb-4 rounded-xl border border-line p-3">
+      <label className="label" htmlFor="class-pick">
+        {t('classes.use')}
+      </label>
+      <select id="class-pick" className="input mb-2" value={classId ?? ''} onChange={(e) => onPick(e.target.value || null)}>
+        <option value="">{t('classes.own')}</option>
+        {classes.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name} ({c.names.length})
+          </option>
+        ))}
+      </select>
+      {classId ? (
+        <p className="text-xs text-muted">{t('classes.linkedHint')}</p>
+      ) : (
+        hasNames && (
+          <div className="flex gap-2">
+            <input className="input" value={name} maxLength={80} placeholder={t('classes.namePlaceholder')} aria-label={t('classes.namePlaceholder')} onChange={(e) => setName(e.target.value)} />
+            <button
+              type="button"
+              className="btn"
+              disabled={!name.trim()}
+              onClick={() => {
+                onSave(name);
+                setName('');
+              }}
+            >
+              {t('classes.saveAs')}
+            </button>
+          </div>
+        )
+      )}
+    </div>
+  );
+}

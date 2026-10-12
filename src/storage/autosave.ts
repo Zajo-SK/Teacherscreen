@@ -1,4 +1,4 @@
-import type { Deck, Screen } from '@/types';
+import type { ClassList, Deck, Screen } from '@/types';
 import type { StorageAdapter } from './db';
 
 export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
@@ -12,12 +12,14 @@ export class AutoSaver {
   private decks = new Set<string>();
   private delScreens = new Set<string>();
   private delDecks = new Set<string>();
+  private classes = new Set<string>();
+  private delClasses = new Set<string>();
   private timer: ReturnType<typeof setTimeout> | null = null;
   private inflight: Promise<void> = Promise.resolve();
 
   constructor(
     private storage: StorageAdapter,
-    private read: { screen: (id: string) => Screen | undefined; deck: (id: string) => Deck | undefined },
+    private read: { screen: (id: string) => Screen | undefined; deck: (id: string) => Deck | undefined; cls?: (id: string) => ClassList | undefined },
     private onStatus: (s: SaveStatus, error?: unknown) => void,
     private delayMs = 300,
   ) {}
@@ -42,8 +44,18 @@ export class AutoSaver {
     this.delDecks.add(id);
     this.schedule();
   }
+  markClass(id: string) {
+    this.delClasses.delete(id);
+    this.classes.add(id);
+    this.schedule();
+  }
+  removeClass(id: string) {
+    this.classes.delete(id);
+    this.delClasses.add(id);
+    this.schedule();
+  }
   get pending(): boolean {
-    return this.screens.size + this.decks.size + this.delScreens.size + this.delDecks.size > 0;
+    return this.screens.size + this.decks.size + this.delScreens.size + this.delDecks.size + this.classes.size + this.delClasses.size > 0;
   }
   isDirty(id: string) {
     return this.screens.has(id);
@@ -61,12 +73,16 @@ export class AutoSaver {
     if (!this.pending) return this.inflight;
     const screens = [...this.screens].map((id) => this.read.screen(id)).filter((s): s is Screen => !!s);
     const decks = [...this.decks].map((id) => this.read.deck(id)).filter((d): d is Deck => !!d);
+    const cls = [...this.classes].map((id) => this.read.cls?.(id)).filter((c): c is ClassList => !!c);
+    const delC = [...this.delClasses];
     const delS = [...this.delScreens];
     const delD = [...this.delDecks];
     this.screens.clear();
     this.decks.clear();
     this.delScreens.clear();
     this.delDecks.clear();
+    this.classes.clear();
+    this.delClasses.clear();
     this.onStatus('saving');
     this.inflight = this.inflight
       .then(async () => {
@@ -74,6 +90,8 @@ export class AutoSaver {
         await this.storage.putDecks(decks);
         await this.storage.deleteScreens(delS);
         await this.storage.deleteDecks(delD);
+        await this.storage.putClasses(cls);
+        await this.storage.deleteClasses(delC);
         if (!this.pending) this.onStatus('saved');
       })
       .catch((e) => {
@@ -82,6 +100,8 @@ export class AutoSaver {
         decks.forEach((d) => this.decks.add(d.id));
         delS.forEach((id) => this.delScreens.add(id));
         delD.forEach((id) => this.delDecks.add(id));
+        cls.forEach((c) => this.classes.add(c.id));
+        delC.forEach((id) => this.delClasses.add(id));
         this.onStatus('error', e);
       });
     return this.inflight;

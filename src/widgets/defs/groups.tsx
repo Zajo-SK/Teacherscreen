@@ -3,13 +3,15 @@ import { z } from 'zod';
 import { t } from '@/i18n';
 import { NumberField, Segmented } from '@/components/forms';
 import { splitIntoGroups, verifyPartition } from '@/lib/groups';
-import { int, oneOf, strList } from '../fields';
-import { NamesEditor } from '../NamesEditor';
+import { int, nullableStr, oneOf, strList } from '../fields';
+import { ClassPicker, NamesEditor } from '../NamesEditor';
+import { useStudentNames } from '../studentNames';
 import { useRuntime } from '../runtime';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const schema = z.object({
   names: strList(200, 60),
+  classId: nullableStr,
   mode: oneOf(['count', 'size'] as const, 'count'),
   value: int(4, 1, 100),
   result: z
@@ -20,11 +22,12 @@ const schema = z.object({
 type Config = z.output<typeof schema>;
 
 function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
-  const empty = config.names.length === 0;
+  const { names } = useStudentNames(config, update);
+  const empty = names.length === 0;
   const flat = config.result.flat();
-  const ok = config.result.length > 0 && verifyPartition(config.names, config.result);
+  const ok = config.result.length > 0 && verifyPartition(names, config.result);
   const stale = config.result.length > 0 && !ok;
-  const run = () => update({ result: splitIntoGroups(config.names, config.mode, config.value) });
+  const run = () => update({ result: splitIntoGroups(names, config.mode, config.value) });
   const total = Math.max(1, flat.length);
   const font = Math.round(Math.max(16, Math.min(40, Math.sqrt((widget.w * (widget.h - 140)) / (total * 2.4 + config.result.length * 9)) * 0.42)));
   return (
@@ -40,7 +43,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
               ? t('w.groups.stale')
               : config.result.length
                 ? t('w.groups.verified', { n: flat.length })
-                : t('w.groups.summary', { n: config.names.length, mode: config.mode === 'count' ? t('w.groups.countN', { n: config.value }) : t('w.groups.sizeN', { n: config.value }) })}
+                : t('w.groups.summary', { n: names.length, mode: config.mode === 'count' ? t('w.groups.countN', { n: config.value }) : t('w.groups.sizeN', { n: config.value }) })}
         </span>
       </div>
       <div
@@ -68,11 +71,13 @@ const GROUP_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#0
 
 function Settings({ config, update }: SettingsProps<Config>) {
   const rt = useRuntime();
-  const pickers = rt.widgets.filter((w) => w.type === 'picker' && Array.isArray((w.config as { names?: unknown }).names));
+  const sn = useStudentNames(config, update, { result: [] });
+  const pickers = rt.widgets.filter((w) => w.type === 'picker' && Array.isArray((w.config as { names?: unknown }).names) && (w.config as { names: string[] }).names.length > 0);
   return (
     <>
-      <NamesEditor names={config.names} onChange={(names) => update({ names, result: [] })} />
-      {pickers.length > 0 && (
+      <ClassPicker classes={sn.classes} classId={config.classId} hasNames={config.names.length > 0} onPick={sn.pickClass} onSave={sn.saveAsClass} />
+      <NamesEditor names={sn.names} onChange={sn.setNames} />
+      {pickers.length > 0 && !config.classId && (
         <button type="button" className="btn mb-3" onClick={() => update({ names: (pickers[0]!.config as { names: string[] }).names.slice(), result: [] })}>
           {t('w.groups.fromPicker')}
         </button>

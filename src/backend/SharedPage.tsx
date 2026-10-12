@@ -41,7 +41,7 @@ export function SharedPage({ token }: { token: string }) {
             type="button"
             className="btn btn-primary"
             onClick={() => {
-              const [id] = importParsed({ screens: [{ ...screen, deckId: null }], decks: [], skippedWidgets: 0, skippedScreens: 0 });
+              const [id] = importParsed({ screens: [{ ...screen, deckId: null }], decks: [], classes: [], skippedWidgets: 0, skippedScreens: 0 });
               if (id) navigate({ name: 'edit', id });
             }}
           >

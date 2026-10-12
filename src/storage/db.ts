@@ -1,10 +1,11 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Deck, Screen } from '@/types';
-import { sanitizeDeck, sanitizeScreen } from '@/lib/schema';
+import type { ClassList, Deck, Screen } from '@/types';
+import { sanitizeClass, sanitizeDeck, sanitizeScreen } from '@/lib/schema';
 
 export interface LoadResult {
   screens: Screen[];
   decks: Deck[];
+  classes: ClassList[];
   /** Počet záznamov, ktoré sa nepodarilo prečítať (poškodené dáta ostávajú v úložisku nedotknuté). */
   corrupted: number;
 }
@@ -16,17 +17,21 @@ export interface StorageAdapter {
   deleteScreens(ids: string[]): Promise<void>;
   putDecks(decks: Deck[]): Promise<void>;
   deleteDecks(ids: string[]): Promise<void>;
+  putClasses(classes: ClassList[]): Promise<void>;
+  deleteClasses(ids: string[]): Promise<void>;
 }
 
 interface TsDB extends DBSchema {
   screens: { key: string; value: Screen };
   decks: { key: string; value: Deck };
+  classes: { key: string; value: ClassList };
 }
 
 export const DB_NAME = 'teacherscreen';
-export const DB_VERSION = 1;
+export const DB_VERSION = 2;
 
-function parseAll(rawScreens: unknown[], rawDecks: unknown[]): LoadResult {
+function parseAll(rawScreens: unknown[], rawDecks: unknown[], rawClasses: unknown[] = []): LoadResult {
+  const classes: ClassList[] = [];
   const screens: Screen[] = [];
   const decks: Deck[] = [];
   let corrupted = 0;
@@ -42,7 +47,12 @@ function parseAll(rawScreens: unknown[], rawDecks: unknown[]): LoadResult {
     if (d) decks.push(d);
     else corrupted++;
   }
-  return { screens, decks, corrupted };
+  for (const raw of rawClasses) {
+    const c = sanitizeClass(raw);
+    if (c) classes.push(c);
+    else corrupted++;
+  }
+  return { screens, decks, classes, corrupted };
 }
 
 export class IndexedDbAdapter implements StorageAdapter {
@@ -52,16 +62,17 @@ export class IndexedDbAdapter implements StorageAdapter {
   static async open(name = DB_NAME): Promise<IndexedDbAdapter> {
     const db = await openDB<TsDB>(name, DB_VERSION, {
       upgrade(d) {
-        d.createObjectStore('screens', { keyPath: 'id' });
-        d.createObjectStore('decks', { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('screens')) d.createObjectStore('screens', { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('decks')) d.createObjectStore('decks', { keyPath: 'id' });
+        if (!d.objectStoreNames.contains('classes')) d.createObjectStore('classes', { keyPath: 'id' });
       },
     });
     return new IndexedDbAdapter(db);
   }
 
   async loadAll(): Promise<LoadResult> {
-    const [s, d] = await Promise.all([this.db.getAll('screens'), this.db.getAll('decks')]);
-    return parseAll(s, d);
+    const [s, d, c] = await Promise.all([this.db.getAll('screens'), this.db.getAll('decks'), this.db.getAll('classes')]);
+    return parseAll(s, d, c);
   }
   async putScreens(screens: Screen[]): Promise<void> {
     const tx = this.db.transaction('screens', 'readwrite');
@@ -79,6 +90,14 @@ export class IndexedDbAdapter implements StorageAdapter {
     const tx = this.db.transaction('decks', 'readwrite');
     await Promise.all([...ids.map((id) => tx.store.delete(id)), tx.done]);
   }
+  async putClasses(classes: ClassList[]): Promise<void> {
+    const tx = this.db.transaction('classes', 'readwrite');
+    await Promise.all([...classes.map((c) => tx.store.put(c)), tx.done]);
+  }
+  async deleteClasses(ids: string[]): Promise<void> {
+    const tx = this.db.transaction('classes', 'readwrite');
+    await Promise.all([...ids.map((id) => tx.store.delete(id)), tx.done]);
+  }
 }
 
 /** Záložné úložisko v pamäti, ak IndexedDB nie je dostupná (napr. niektoré súkromné okná). Dáta sa po zatvorení stratia. */
@@ -86,8 +105,9 @@ export class MemoryAdapter implements StorageAdapter {
   readonly kind = 'memory' as const;
   private screens = new Map<string, Screen>();
   private decks = new Map<string, Deck>();
+  private classes = new Map<string, ClassList>();
   async loadAll(): Promise<LoadResult> {
-    return parseAll([...this.screens.values()], [...this.decks.values()]);
+    return parseAll([...this.screens.values()], [...this.decks.values()], [...this.classes.values()]);
   }
   async putScreens(screens: Screen[]) {
     screens.forEach((s) => this.screens.set(s.id, structuredClone(s)));
@@ -100,6 +120,12 @@ export class MemoryAdapter implements StorageAdapter {
   }
   async deleteDecks(ids: string[]) {
     ids.forEach((id) => this.decks.delete(id));
+  }
+  async putClasses(classes: ClassList[]) {
+    classes.forEach((c) => this.classes.set(c.id, structuredClone(c)));
+  }
+  async deleteClasses(ids: string[]) {
+    ids.forEach((id) => this.classes.delete(id));
   }
 }
 

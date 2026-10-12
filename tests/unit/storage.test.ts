@@ -34,7 +34,7 @@ describe('IndexedDB úložisko', () => {
     const name = dbName();
     const a = await IndexedDbAdapter.open(name);
     await a.putScreens([buildScreen({ name: 'OK' })]);
-    const raw = await openDB(name, 1);
+    const raw = await openDB(name, 2);
     await raw.put('screens', { id: 'zly', schemaVersion: 1, widgets: 'nie pole' }); // chýbajúce polia – opraví sa
     await raw.put('screens', { id: 'zly2', schemaVersion: 999 }); // novšia verzia – nedá sa načítať
     await raw.put('screens', 'nie je objekt', 'kluc').catch(() => undefined);
@@ -103,5 +103,24 @@ describe('automatické ukladanie', () => {
     saver.removeScreen(s.id);
     await saver.flush();
     expect((await adapter.loadAll()).screens).toHaveLength(0);
+  });
+});
+
+describe('migrácia úložiska', () => {
+  it('databáza verzie 1 (bez tried) sa otvorí a dáta ostanú zachované', async () => {
+    const name = dbName();
+    const old = await openDB(name, 1, {
+      upgrade(d) {
+        d.createObjectStore('screens', { keyPath: 'id' });
+        d.createObjectStore('decks', { keyPath: 'id' });
+      },
+    });
+    await old.put('screens', buildScreen({ name: 'Stará' }));
+    old.close();
+    const a = await IndexedDbAdapter.open(name);
+    const loaded = await a.loadAll();
+    expect(loaded.screens.map((s) => s.name)).toEqual(['Stará']);
+    await a.putClasses([{ id: 'c', name: '5.A', names: ['Anna'], updatedAt: 1 }]);
+    expect((await a.loadAll()).classes).toHaveLength(1);
   });
 });

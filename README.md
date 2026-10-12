@@ -59,19 +59,30 @@ tests/unit, tests/e2e      automatizované testy
 `Ctrl+Z` späť · `Ctrl+Y`/`Ctrl+Shift+Z` znova · `Ctrl+C/X/V` kopírovať/vystrihnúť/vložiť · `Ctrl+D` duplikovať · `Ctrl+A` vybrať všetko · `Ctrl+L` uzamknúť · `Delete` odstrániť (s tlačidlom „Vrátiť“) · šípky posun (Shift = 10) · `[` `]` vrstvy · `P`/`F5` prezentácia · `F` celá obrazovka.
 Prezentácia: `←` `→` `PgUp` `PgDn` `Home` `End` prepínanie obrazoviek · `F` celá obrazovka · `Esc` späť do editora.
 
-## Voliteľný backend (Supabase)
+## Účty, synchronizácia a triedy
+
+Učiteľ sa registruje **prezývkou (nick) a heslom** – bez e‑mailu. Po prihlásení na ľubovoľnom zariadení sa jeho plochy automaticky synchronizujú (po každej zmene, pri obnovení pripojenia, pri návrate na kartu a každých 90 s). Bez účtu aplikácia funguje naplno lokálne.
+
+* **Plochy:** nahrávajú sa a sťahujú automaticky. Pri úprave tej istej plochy na dvoch zariadeniach sa nič nestratí – lokálna verzia sa zachová ako kópia „(lokálna verzia)“. Zmazanie sa prenáša medzi zariadeniami.
+* **Triedy (zoznamy žiakov):** tlačidlo **Triedy** na domovskej stránke. Triedu (napr. 5.A) vyberiete vo widgetoch *Náhodný výber žiaka* a *Rozdeľovač skupín*; úprava zoznamu sa prejaví vo všetkých widgetoch. Triedy sú uložené lokálne; **na server sa posielajú len po výslovnom zapnutí** voľby „Synchronizovať zoznamy tried“ v účte (predvolene vypnuté). Vidí ich iba vlastník (RLS), nie administrátor ani iní učitelia; dajú sa kedykoľvek zmazať zo servera. Mená žiakov v plochách sa na server neposielajú nikdy – plocha nesie iba odkaz na triedu.
+* **Spoločný počítač:** „Odhlásiť a odstrániť dáta z tohto zariadenia“ dokončí synchronizáciu a vymaže lokálne plochy a triedy. Ak sa na zariadení s cudzími lokálnymi dátami prihlási iný učiteľ, dáta sa nenahrajú automaticky – aplikácia sa opýta (pridať do účtu / odstrániť).
+* **Heslo sa nedá obnoviť e‑mailom** (účet nemá e‑mail). Zabudnuté heslo vie administrátor Supabase projektu resetovať v paneli Authentication.
+
+## Backend (Supabase) – nastavenie
 
 Bez konfigurácie sa žiadne cloudové prvky nezobrazujú a knižnica Supabase sa ani nestiahne.
 
-1. Vytvorte projekt na supabase.com (alebo vlastnú inštanciu).
-2. V SQL editore spustite `supabase/migrations/0001_init.sql` (alebo `supabase db push`).
-3. Skopírujte `.env.example` na `.env` a vyplňte `VITE_SUPABASE_URL` a `VITE_SUPABASE_ANON_KEY` (verejný anon kľúč; **nikdy** nevkladajte `service_role`).
-4. V Supabase → Authentication nastavte povolené domény/e‑mailové potvrdenie podľa školy.
-5. Prvého administrátora určíte v SQL: `update public.profiles set role = 'admin' where email = 'riaditel@skola.sk';` Ďalších už spravuje administrátor v aplikácii (`#/admin`).
+1. Na supabase.com vytvorte (bezplatný) projekt.
+2. V *SQL Editor* spustite postupne `supabase/migrations/0001_init.sql` a `0002_class_lists.sql`.
+3. *Authentication → Providers → Email*: ponechajte zapnuté, ale **vypnite „Confirm email“** (prezývka nemá skutočný e‑mail, nič sa nikam neposiela).
+4. *Project Settings → API*: skopírujte *Project URL* a verejný kľúč *anon*.
+   * lokálne: `.env` podľa `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`);
+   * GitHub Pages: v repozitári *Settings → Secrets and variables → Actions → **Variables*** pridajte `VITE_SUPABASE_URL` a `VITE_SUPABASE_ANON_KEY` a spustite workflow znova. (Anon kľúč je verejný z princípu – dáta chráni RLS. Kľúč `service_role` sem **nikdy** nevkladajte.)
+5. Prvého administrátora určíte v SQL: `update public.profiles set role = 'admin' where email = 'prezyvka@teacherscreen.example.com';` (interný e‑mail = prezývka + `@teacherscreen.example.com`). Ďalších spravuje administrátor v aplikácii (`#/admin`).
 
-Roly: **návštevník** (bez účtu – plná lokálna funkčnosť), **učiteľ** (vlastné obrazovky, kópie školských šablón, zdieľanie podľa oprávnenia), **administrátor školy** (školské šablóny, role a právo zdieľať, školské predvolené hodnoty).
+Roly: **návštevník** (bez účtu – plná lokálna funkčnosť), **učiteľ** (vlastné plochy a triedy, kópie školských šablón, zdieľanie podľa oprávnenia), **administrátor školy** (školské šablóny, role a právo zdieľať, predvolené hodnoty).
 
-Bezpečnosť: všetky tabuľky majú RLS. Súkromné obrazovky vidí iba vlastník (a príjemcovia zdieľania); ani administrátor ich nevidí. Zdieľanie s učiteľom má oprávnenie `view`/`edit`; odkazy sú náhodné tokeny s expiráciou 30 dní a dajú sa zrušiť. Politiky overuje `tests/unit/rls.test.ts` na skutočnej PostgreSQL (PGlite) – 21 scenárov vrátane prístupu k cudzím obrazovkám podľa ID. Požiadavky na server majú 10 s limit a pri výpadku sa zobrazí zrozumiteľná správa; lokálna práca nie je dotknutá.
+Bezpečnosť: všetky tabuľky majú RLS. Súkromné plochy a triedy vidí iba vlastník (a príjemcovia zdieľania plôch); ani administrátor nie. Zdieľanie s učiteľom (podľa prezývky) má oprávnenie `view`/`edit`; odkazy sú náhodné tokeny s expiráciou 30 dní a dajú sa zrušiť. Politiky overuje `tests/unit/rls.test.ts` na skutočnej PostgreSQL (PGlite). Klientsku synchronizáciu (registrácia, prihlásenie dvoch zariadení, zmeny, mazanie) overuje `tests/e2e/sync.spec.ts` proti lokálnej náhrade Supabase (`tests/e2e/fake-supabase.mjs`). Požiadavky na server majú 10 s limit a pri výpadku sa zobrazí zrozumiteľná správa; lokálna práca nie je dotknutá.
 
 ## Nasadenie
 
@@ -94,8 +105,8 @@ Implementované a otestované: všetkých 15 widgetov (text, hodiny, časovač, 
 
 Obmedzenia a nedokončené:
 * **Hlasovanie z osobných zariadení žiakov nie je implementované.** Widget Anketa je lokálny (hlasy zapisuje učiteľ) a je tak aj označený; samostatný serverový modul by bol ďalšou etapou.
-* Backend je overený na úrovni databázy (RLS testy v PGlite); klientska časť (prihlásenie, nahrávanie, zdieľanie) **nebola testovaná proti živej inštancii Supabase** – pred ostrým nasadením ju prejdite manuálne. Testovaný je výpadok servera (scenár 11).
+* Backend je overený na úrovni databázy (RLS testy v PGlite) a synchronizácia proti lokálnej náhrade Supabase, **nie však proti živej inštancii Supabase** – po prvom nastavení si prejdite registráciu a synchronizáciu na dvoch zariadeniach. Zdieľanie s učiteľom a odkazy majú iba databázové testy.
 * Rozhranie je len v slovenčine (mechanizmus pre ďalšie jazyky je pripravený v `src/i18n`).
-* Cloudová synchronizácia je manuálna (nahrať/stiahnuť), nie priebežná; pri súčasnom úprave v dvoch oknách prehliadača platí „posledný zapísal vyhráva“.
+* Synchronizujú sa plochy a (voliteľne) triedy; zostavy (poradie plôch) sa medzi zariadeniami nesynchronizujú. Pri súčasnej úprave v dvoch oknách toho istého prehliadača platí „posledný zapísal vyhráva“.
 * E2E testy bežia v Chromiu (vrátane emulácie iPadu a 4K); Firefox/Safari neboli v tomto prostredí k dispozícii.
 * Škálovanie písma widgetov je v jednotkách virtuálnej plochy; na malých telefónoch je aplikácia použiteľná, ale určená je pre tablety, notebooky a veľké obrazovky.

@@ -3,6 +3,7 @@ import { SCHEMA_VERSION } from '@/types';
 import { sanitizeScreen, stripStudentData } from '@/lib/schema';
 import { getWidgetDefinition } from '@/widgets/registry';
 import { getSupabase } from './client';
+import { nickToEmail, validateNick } from './nick';
 
 export type Role = 'teacher' | 'admin';
 export interface Profile {
@@ -18,6 +19,12 @@ export interface RemoteScreenRow {
   updated_at: string;
   owner_id: string;
   permission?: 'owner' | 'view' | 'edit';
+}
+export interface RemoteClassRow {
+  id: string;
+  name: string;
+  names: string[];
+  updated_at: string;
 }
 export interface ShareRow {
   id: string;
@@ -83,25 +90,26 @@ export const api = {
     return rows[0] ?? null;
   },
 
-  // ---- moje a zdieľané obrazovky
-  async listMine(): Promise<RemoteScreenRow[]> {
-    const rows = await run<RemoteScreenRow[]>((sb) => sb.from('screens').select('id,name,updated_at,owner_id').order('updated_at', { ascending: false }));
-    return rows;
+  // ---- moje a zdieľané obrazovky (ID na serveri = ID obrazovky v zariadení)
+  async listMine(userId: string): Promise<RemoteScreenRow[]> {
+    return run<RemoteScreenRow[]>((sb) => sb.from('screens').select('id,name,updated_at,owner_id').eq('owner_id', userId).order('updated_at', { ascending: false }));
   },
   async listShared(userId: string): Promise<RemoteScreenRow[]> {
-    const rows = await run<(RemoteScreenRow & { _p?: string })[]>((sb) => sb.from('screens').select('id,name,updated_at,owner_id').neq('owner_id', userId).order('updated_at', { ascending: false }));
-    return rows;
+    return run<RemoteScreenRow[]>((sb) => sb.from('screens').select('id,name,updated_at,owner_id').neq('owner_id', userId).order('updated_at', { ascending: false }));
   },
-  async upload(screen: Screen, remoteId?: string): Promise<string> {
-    const payload = { name: screen.name.slice(0, 120) || 'Bez názvu', data: toRemoteData(screen), schema_version: SCHEMA_VERSION };
-    if (remoteId) {
-      const rows = await run<{ id: string }[]>((sb) => sb.from('screens').update(payload).eq('id', remoteId).select('id'));
-      if (rows.length) return rows[0]!.id;
-    }
-    const rows = await run<{ id: string }[]>((sb) => sb.from('screens').insert(payload).select('id'));
-    return rows[0]!.id;
+  /** Nahrá obrazovku (bez zoznamov žiakov). Vráti čas úpravy na serveri v ms. */
+  async upload(screen: Screen): Promise<number> {
+    const payload = { id: screen.id, name: screen.name.slice(0, 120) || 'Bez názvu', data: toRemoteData(screen), schema_version: SCHEMA_VERSION };
+    const rows = await run<{ updated_at: string }[]>((sb) => sb.from('screens').upsert(payload, { onConflict: 'id' }).select('updated_at'));
+    return Date.parse(rows[0]!.updated_at);
   },
   async download(remoteId: string): Promise<Screen> {
+    const rows = await run<{ data: unknown }[]>((sb) => sb.from('screens').select('data').eq('id', remoteId).limit(1));
+    if (!rows[0]) throw new BackendError('denied', 'not found');
+    return sanitizeScreen(rows[0].data, { keepId: true }).screen;
+  },
+  /** Stiahne cudziu (zdieľanú) obrazovku ako novú lokálnu kópiu. */
+  async downloadCopy(remoteId: string): Promise<Screen> {
     const rows = await run<{ data: unknown }[]>((sb) => sb.from('screens').select('data').eq('id', remoteId).limit(1));
     if (!rows[0]) throw new BackendError('denied', 'not found');
     return sanitizeScreen(rows[0].data).screen;
@@ -110,9 +118,26 @@ export const api = {
     await run((sb) => sb.from('screens').delete().eq('id', remoteId));
   },
 
+  // ---- triedy (zoznamy žiakov) – iba súkromné, iba vlastník
+  async listClasses(userId: string): Promise<RemoteClassRow[]> {
+    return run<RemoteClassRow[]>((sb) => sb.from('class_lists').select('id,name,names,updated_at').eq('owner_id', userId));
+  },
+  async upsertClass(c: { id: string; name: string; names: string[] }): Promise<number> {
+    const rows = await run<{ updated_at: string }[]>((sb) => sb.from('class_lists').upsert({ id: c.id, name: c.name, names: c.names }, { onConflict: 'id' }).select('updated_at'));
+    return Date.parse(rows[0]!.updated_at);
+  },
+  async deleteClass(id: string): Promise<void> {
+    await run((sb) => sb.from('class_lists').delete().eq('id', id));
+  },
+  async deleteAllClasses(userId: string): Promise<void> {
+    await run((sb) => sb.from('class_lists').delete().eq('owner_id', userId));
+  },
+
   // ---- zdieľanie
   async findUser(email: string): Promise<{ id: string; display_name: string } | null> {
-    const rows = await run<{ id: string; display_name: string }[]>((sb) => sb.rpc('find_user_by_email', { p_email: email.trim() }));
+    const v = validateNick(email);
+    if (!v.ok) return null;
+    const rows = await run<{ id: string; display_name: string }[]>((sb) => sb.rpc('find_user_by_email', { p_email: nickToEmail(v.nick) }));
     return rows[0] ?? null;
   },
   async listShares(remoteId: string): Promise<ShareRow[]> {

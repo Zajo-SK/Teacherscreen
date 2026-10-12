@@ -8,3 +8,4 @@ playwright-report
 .env.local
 *.local
 dist-backend-down
+dist-sync

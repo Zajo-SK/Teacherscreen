@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Toasts } from '@/components/ui';
 import { t } from '@/i18n';
 import { useRoute } from '@/lib/router';
@@ -20,6 +20,29 @@ function useTheme() {
   }, [theme]);
 }
 
+function Loading() {
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setSlow(true), 3000);
+    return () => clearTimeout(id);
+  }, []);
+  return (
+    <div className="grid h-dvh place-items-center p-6 text-center text-muted">
+      <div>
+        <p>{t('common.loading')}</p>
+        {slow && (
+          <>
+            <p className="mt-3 max-w-md text-sm">{t('common.loadingSlow')}</p>
+            <button type="button" className="btn mt-3" onClick={() => location.reload()}>
+              {t('common.reload')}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function App() {
   const ready = useApp((s) => s.ready);
   const route = useRoute();
@@ -36,7 +59,7 @@ export function App() {
     };
   }, []);
 
-  if (!ready) return <p className="grid h-dvh place-items-center text-muted">{t('common.loading')}</p>;
+  if (!ready) return <Loading />;
   return (
     <>
       <a href="#main" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-[200] focus:rounded focus:bg-surface focus:p-2">

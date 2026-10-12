@@ -146,3 +146,86 @@ test.describe('synchronizácia medzi zariadeniami', () => {
     await p.context().close();
   });
 });
+
+test.describe('správa účtov administrátorom', () => {
+  test('admin vidí učiteľov, upraví triedu, resetuje heslo, zmaže účet; učiteľ si heslo zmení', async ({ browser }) => {
+    const teacher = `uc${Date.now() % 100000}`;
+    const boss = `riaditel${Date.now() % 100000}`;
+    const register = async (page: Page, nick: string) => {
+      await openAccount(page);
+      await page.getByRole('button', { name: 'Vytvoriť účet' }).first().click();
+      await page.getByLabel('Prezývka (nick)').fill(nick);
+      await page.getByLabel('Heslo').fill(PW);
+      await page.getByRole('dialog').getByRole('button', { name: 'Vytvoriť účet' }).last().click();
+      await expect(page.getByText(`Prihlásený ako ${nick}`)).toBeVisible();
+    };
+
+    // učiteľ s triedou na serveri
+    const t = await device(browser);
+    await register(t, teacher);
+    await t.getByLabel(/Synchronizovať zoznamy tried/).check();
+    await t.keyboard.press('Escape');
+    await t.getByTestId('classes-btn').click();
+    await t.getByTestId('new-class').click();
+    await t.getByLabel('Názov triedy').fill('9.C');
+    await t.getByLabel(/Vložiť zoznam/).fill('Ela\nFero');
+    await t.getByRole('button', { name: 'Nahradiť zoznam' }).click();
+    await t.keyboard.press('Escape');
+    await syncNow(t);
+
+    // administrátor
+    const a = await device(browser);
+    await register(a, boss);
+    await a.keyboard.press('Escape');
+    await fetch(`${API}/__makeadmin?nick=${boss}`);
+    await a.reload();
+    await a.getByTestId('account-btn').click();
+    await a.getByRole('button', { name: 'Správa školy' }).click();
+    await expect(a.getByTestId(`user-${teacher}`)).toBeVisible();
+    await expect(a.getByTestId(`user-${teacher}`)).toContainText('Triedy: 1');
+
+    // správa triedy cudzieho učiteľa
+    await a.getByRole('button', { name: `Triedy: ${teacher}` }).click();
+    await a.getByTestId('admin-class-list').getByRole('button', { name: /9\.C/ }).click();
+    await a.getByLabel('Názov triedy').fill('9.C (opravená)');
+    await a.getByRole('dialog').getByRole('button', { name: 'Uložiť', exact: true }).click();
+    await a.keyboard.press('Escape');
+
+    // reset hesla
+    await a.getByRole('button', { name: `Reset hesla: ${teacher}` }).click();
+    await a.getByRole('dialog').getByRole('button', { name: 'Reset hesla' }).click();
+    const newPw = (await a.getByTestId('new-password').textContent())!.trim();
+    expect(newPw.length).toBeGreaterThanOrEqual(8);
+    await a.getByRole('dialog').getByRole('button', { name: 'Zavrieť' }).last().click();
+    await expect(a.getByTestId('admin-audit')).toContainText('Reset hesla');
+
+    // učiteľ sa prihlási novým heslom a zmení si ho
+    const t2 = await device(browser);
+    await openAccount(t2);
+    await t2.getByLabel('Prezývka (nick)').fill(teacher);
+    await t2.getByLabel('Heslo').fill(PW);
+    await t2.getByRole('dialog').getByRole('button', { name: 'Prihlásiť sa', exact: true }).last().click();
+    await expect(t2.getByRole('alert')).toContainText('Nesprávny');
+    await t2.getByLabel('Heslo').fill(newPw);
+    await t2.getByRole('dialog').getByRole('button', { name: 'Prihlásiť sa', exact: true }).last().click();
+    await expect(t2.getByText(`Prihlásený ako ${teacher}`)).toBeVisible();
+    await t2.getByLabel('Nové heslo').fill('uplne-nove-heslo');
+    await t2.getByRole('button', { name: 'Zmeniť heslo' }).click();
+    await expect(t2.getByText('Heslo bolo zmenené.')).toBeVisible();
+    await t2.context().close();
+
+    // zmazanie účtu vyžaduje potvrdenie prezývkou
+    await a.getByRole('button', { name: `Zmazať účet: ${teacher}` }).click();
+    const del = a.getByRole('dialog').getByRole('button', { name: 'Zmazať účet' });
+    await expect(del).toBeDisabled();
+    await a.getByLabel(/Na potvrdenie napíšte/).fill(teacher);
+    await del.click();
+    await expect(a.getByTestId(`user-${teacher}`)).toHaveCount(0);
+    const db = await (await fetch(`${API}/__db`)).json();
+    expect(db.class_lists.filter((c: { name: string }) => c.name.startsWith('9.C'))).toHaveLength(0);
+    // seba nemožno zmazať ani resetovať
+    await expect(a.getByRole('button', { name: `Zmazať účet: ${boss}` })).toBeDisabled();
+    await t.context().close();
+    await a.context().close();
+  });
+});

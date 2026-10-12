@@ -26,6 +26,18 @@ export interface RemoteClassRow {
   names: string[];
   updated_at: string;
 }
+export interface AdminUser extends Profile {
+  created_at: string;
+  screens_count: number;
+  classes_count: number;
+}
+export interface AuditRow {
+  id: number;
+  action: string;
+  target_nick: string | null;
+  detail: string;
+  created_at: string;
+}
 export interface ShareRow {
   id: string;
   grantee_id: string;
@@ -189,6 +201,34 @@ export const api = {
   },
   async setCanShare(userId: string, allowed: boolean): Promise<void> {
     await run((sb) => sb.rpc('set_user_can_share', { target: userId, allowed }));
+  },
+  async adminOverview(): Promise<AdminUser[]> {
+    const rows = await run<AdminUser[]>((sb) => sb.rpc('admin_user_overview'));
+    return rows.map((r) => ({ ...r, screens_count: Number(r.screens_count), classes_count: Number(r.classes_count) }));
+  },
+  async adminResetPassword(target: string, password: string): Promise<void> {
+    await run((sb) => sb.rpc('admin_reset_password', { target, new_password: password }));
+  },
+  async adminDeleteUser(target: string): Promise<void> {
+    await run((sb) => sb.rpc('admin_delete_user', { target }));
+  },
+  async adminClasses(userId: string): Promise<RemoteClassRow[]> {
+    return run<RemoteClassRow[]>((sb) => sb.from('class_lists').select('id,name,names,updated_at').eq('owner_id', userId).order('name'));
+  },
+  async adminUpdateClass(id: string, name: string, names: string[]): Promise<void> {
+    await run((sb) => sb.from('class_lists').update({ name, names }).eq('id', id));
+  },
+  async adminAudit(): Promise<AuditRow[]> {
+    return run<AuditRow[]>((sb) => sb.from('admin_audit').select('id,action,target_nick,detail,created_at').order('created_at', { ascending: false }).limit(50));
+  },
+  async changeOwnPassword(password: string): Promise<void> {
+    try {
+      const sb = await getSupabase();
+      const { error } = await sb.auth.updateUser({ password });
+      if (error) throw error;
+    } catch (e) {
+      wrap(e);
+    }
   },
   async getSchoolDefaults(): Promise<Record<string, unknown>> {
     const rows = await run<{ defaults: Record<string, unknown> }[]>((sb) => sb.from('school_settings').select('defaults').limit(1));

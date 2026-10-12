@@ -42,6 +42,35 @@ export function AccountButton() {
   );
 }
 
+function ChangePassword() {
+  const toast = useApp((s) => s.toast);
+  const [pw, setPw] = useState('');
+  const [msg, setMsg] = useState<string | null>(null);
+  return (
+    <form
+      className="mb-2 rounded-xl border border-line p-3"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setMsg(null);
+        try {
+          await api.changeOwnPassword(pw);
+          setPw('');
+          toast(t('cloud.passwordChanged'), { tone: 'success' });
+        } catch (er) {
+          setMsg(t(describeError(er) as TKey));
+        }
+      }}
+    >
+      <label className="label" htmlFor="chg-pw">{t('cloud.newPassword')}</label>
+      <div className="flex gap-2">
+        <input id="chg-pw" type="password" className="input" autoComplete="new-password" minLength={8} required value={pw} onChange={(e) => setPw(e.target.value)} />
+        <button type="submit" className="btn" disabled={pw.length < 8}>{t('cloud.changePassword')}</button>
+      </div>
+      {msg && <p role="alert" className="mt-1 text-sm text-danger">{msg}</p>}
+    </form>
+  );
+}
+
 function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { status, nick, profile, error, syncStatus, userId, signIn, signUp, signOut, resolveOwnerChoice } = useCloud();
   const syncClasses = useApp((s) => s.settings.syncClasses);
@@ -84,6 +113,7 @@ function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }
               <Trash2 size={16} aria-hidden /> {t('sync.deleteClasses')}
             </button>
           </div>
+          <ChangePassword />
           {error && <p className="my-2 text-sm text-muted">{t(error as TKey)}</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             {profile?.role === 'admin' && (

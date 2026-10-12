@@ -75,6 +75,8 @@ Bezpečnosť: všetky tabuľky majú RLS. Súkromné obrazovky vidí iba vlastn�
 
 ## Nasadenie
 
+**GitHub Pages (hotové):** workflow `.github/workflows/pages.yml` aplikáciu po každom pushi do `main` otestuje, zostaví a publikuje. Jednorazovo v repozitári zapnite *Settings → Pages → Source: GitHub Actions*. Adresa bude `https://<používateľ>.github.io/Teacherscreen/` (HTTPS, PWA a offline fungujú).
+
 `npm run build` vytvorí statickú aplikáciu v `dist/` (hash routing – netreba prepisovanie URL). Nahrajte ju na ľubovoľný hosting alebo školský server **cez HTTPS** (service worker a inštalácia PWA vyžadujú HTTPS alebo `localhost`).
 
 * **nginx:** `root /var/www/teacherscreen;` + `location / { try_files $uri /index.html; }`. Pre `sw.js` a `index.html` odporúčame `Cache-Control: no-cache`, pre `assets/` dlhú cache.

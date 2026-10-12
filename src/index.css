@@ -1,0 +1,183 @@
+@import 'tailwindcss';
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg: #eef2f7;
+  --surface: #ffffff;
+  --surface-2: #f4f6fa;
+  --border: #c5cedb;
+  --text: #0f172a;
+  --muted: #475569;
+  --primary: #1d4ed8;
+  --primary-hover: #1e40af;
+  --primary-fg: #ffffff;
+  --danger: #b91c1c;
+  --success: #15803d;
+  --ring: #1d4ed8;
+  --widget-bg: #ffffff;
+  --widget-fg: #0f172a;
+  color-scheme: light;
+}
+.dark {
+  --bg: #0b1220;
+  --surface: #151e2f;
+  --surface-2: #1c2740;
+  --border: #33415c;
+  --text: #f1f5f9;
+  --muted: #a8b4c9;
+  --primary: #60a5fa;
+  --primary-hover: #93c5fd;
+  --primary-fg: #0b1220;
+  --danger: #f87171;
+  --success: #4ade80;
+  --ring: #93c5fd;
+  --widget-bg: #1e293b;
+  --widget-fg: #f8fafc;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-line: var(--border);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-fg: var(--primary-fg);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex min-h-11 select-none items-center justify-center gap-2 rounded-xl border border-line bg-surface px-4 text-base font-medium text-ink transition-colors hover:bg-surface2 disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  .btn-primary {
+    @apply border-transparent bg-primary text-primary-fg hover:bg-primary-hover;
+  }
+  .btn-danger {
+    @apply border-danger text-danger;
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:bg-surface2;
+  }
+  .btn-icon {
+    @apply min-w-11 px-0;
+  }
+  .btn[aria-pressed='true'] {
+    @apply border-primary bg-primary/15;
+  }
+  .input {
+    @apply min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-base text-ink placeholder:text-muted;
+  }
+  textarea.input {
+    @apply py-2;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-sm;
+  }
+  .label {
+    @apply mb-1 block text-sm font-medium text-muted;
+  }
+}
+
+/* ---- Widgety (rozmery v jednotkách virtuálnej plochy 1920×1080; stage sa škáluje transformáciou) ---- */
+.widget-body {
+  container-type: size;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.wbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 64px;
+  min-width: 64px;
+  padding: 0 28px;
+  border-radius: 18px;
+  border: 3px solid color-mix(in srgb, currentColor 35%, transparent);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 28px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+.wbtn:hover {
+  background: color-mix(in srgb, currentColor 18%, transparent);
+}
+.wbtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.wbtn-primary {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+}
+.wbtn-primary:hover {
+  background: #1e40af;
+}
+.winput {
+  min-height: 64px;
+  width: 100%;
+  border-radius: 14px;
+  border: 3px solid color-mix(in srgb, currentColor 30%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 28px;
+  padding: 0 18px;
+}
+.wmuted {
+  opacity: 0.7;
+}
+
+@keyframes ts-flash {
+  0%, 100% { filter: none; }
+  50% { filter: brightness(1.6) saturate(1.4); }
+}
+.ts-alarm {
+  animation: ts-flash 0.8s ease-in-out 5;
+}
+@keyframes ts-pop {
+  0% { transform: scale(0.85); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.ts-pop {
+  animation: ts-pop 0.25s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ts-alarm, .ts-pop { animation: none; }
+  * { scroll-behavior: auto !important; }
+}
+
+/* Lišty na dotykových zariadeniach nemajú spúšťať výber textu/gestá prehliadača. */
+.touch-none-all {
+  touch-action: none;
+}

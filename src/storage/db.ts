@@ -60,13 +60,20 @@ export class IndexedDbAdapter implements StorageAdapter {
   private constructor(private db: IDBPDatabase<TsDB>) {}
 
   static async open(name = DB_NAME): Promise<IndexedDbAdapter> {
+    let handle: IDBPDatabase<TsDB> | null = null;
     const db = await openDB<TsDB>(name, DB_VERSION, {
+      // Iná karta s novšou verziou aplikácie potrebuje aktualizovať databázu – túto kartu pustíme a načítame ju znova.
+      blocking() {
+        handle?.close();
+        setTimeout(() => location.reload(), 100);
+      },
       upgrade(d) {
         if (!d.objectStoreNames.contains('screens')) d.createObjectStore('screens', { keyPath: 'id' });
         if (!d.objectStoreNames.contains('decks')) d.createObjectStore('decks', { keyPath: 'id' });
         if (!d.objectStoreNames.contains('classes')) d.createObjectStore('classes', { keyPath: 'id' });
       },
     });
+    handle = db;
     return new IndexedDbAdapter(db);
   }
 

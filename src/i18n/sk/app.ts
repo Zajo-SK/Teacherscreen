@@ -21,6 +21,8 @@ export const app = {
   'common.moveUp': 'Posunúť vyššie',
   'common.moveDown': 'Posunúť nižšie',
   'common.loading': 'Načítavam…',
+  'common.loadingSlow': 'Načítanie trvá dlhšie. Ak máte TeacherScreen otvorený aj v inej karte alebo okne, zatvorte ho a stránku obnovte.',
+  'common.reload': 'Obnoviť stránku',
   'common.on': 'Zapnuté',
   'common.off': 'Vypnuté',
   'common.yes': 'Áno',

@@ -5,7 +5,7 @@ import { parseImport, buildExport } from '@/lib/schema';
 
 async function fresh() {
   localStorage.clear();
-  useApp.setState({ screens: {}, decks: {}, history: {}, selection: [], clipboard: [], toasts: [] });
+  useApp.setState({ screens: {}, decks: {}, classes: {}, history: {}, selection: [], clipboard: [], toasts: [] });
   const adapter = new MemoryAdapter();
   await useApp.getState().init(adapter);
   return adapter;
@@ -150,5 +150,37 @@ describe('store: obrazovky a widgety', () => {
     for (let i = 0; i < 70; i++) A().addWidget(id, 'clock');
     expect(A().screens[id]!.widgets).toHaveLength(60);
     expect(A().toasts.some((t) => t.tone === 'error')).toBe(true);
+  });
+
+  it('triedy: uloženie, úprava, uloženie do úložiska a zmazanie so záznamom pre synchronizáciu', async () => {
+    const id = A().saveClass({ name: ' 5.A ', names: ['Anna', ' ', 'Peter'] });
+    expect(A().classes[id]).toMatchObject({ name: '5.A', names: ['Anna', 'Peter'] });
+    A().saveClass({ id, name: '5.A', names: ['Anna', 'Peter', 'Eva'] });
+    await A().flush();
+    expect((await adapter.loadAll()).classes[0]!.names).toHaveLength(3);
+    A().deleteClass(id);
+    await A().flush();
+    expect((await adapter.loadAll()).classes).toHaveLength(0);
+    expect(JSON.parse(localStorage.getItem('ts.deleted.classes') ?? '[]')).toContain(id);
+  });
+
+  it('zmazanie obrazovky sa zapíše do záznamu pre synchronizáciu; prevzatie zo servera zachová čas úpravy', () => {
+    const id = A().createScreen({ name: 'Z' });
+    const s = A().screens[id]!;
+    A().deleteScreen(id);
+    expect(JSON.parse(localStorage.getItem('ts.deleted.screens') ?? '[]')).toContain(id);
+    A().applyRemoteScreen({ ...s, name: 'Zo servera', updatedAt: 12345 });
+    expect(A().screens[id]).toMatchObject({ name: 'Zo servera', updatedAt: 12345 });
+  });
+
+  it('wipeLocal odstráni všetko lokálne aj z úložiska', async () => {
+    A().createScreen();
+    A().saveClass({ name: 'X', names: ['a'] });
+    await A().flush();
+    A().wipeLocal();
+    await A().flush();
+    const d = await adapter.loadAll();
+    expect(d.screens).toHaveLength(0);
+    expect(d.classes).toHaveLength(0);
   });
 });

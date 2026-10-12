@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   CANVAS_SIZES,
+  type ClassList,
   DEFAULT_BACKGROUND,
   SCHEMA_VERSION,
   type AspectId,
@@ -143,6 +144,14 @@ export function sanitizeDeck(raw: unknown): Deck | null {
   return { id: r.id.slice(0, 64), name: text(r.name, 120, 'Zostava') || 'Zostava', createdAt: num(r.createdAt, now), updatedAt: num(r.updatedAt, now) };
 }
 
+export function sanitizeClass(raw: unknown): ClassList | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const r = raw as Record<string, unknown>;
+  if (typeof r.id !== 'string' || !r.id) return null;
+  const names = Array.isArray(r.names) ? r.names.filter((n): n is string => typeof n === 'string').map((n) => n.trim().slice(0, 60)).filter(Boolean).slice(0, 200) : [];
+  return { id: r.id.slice(0, 64), name: text(r.name, 80, 'Trieda') || 'Trieda', names, updatedAt: num(r.updatedAt, Date.now()) };
+}
+
 // ---------------------------------------------------------------- export / import súborov
 
 export const FILE_APP = 'teacherscreen';
@@ -155,6 +164,7 @@ export interface ExportFile {
   exportedAt: string;
   screens: unknown[];
   decks?: unknown[];
+  classes?: unknown[];
 }
 
 /** Odstráni zoznamy žiakov zo všetkých widgetov (pre export na zdieľanie). */
@@ -168,7 +178,7 @@ export function stripStudentData(screen: Screen): Screen {
   };
 }
 
-export function buildExport(screens: Screen[], opts: { kind: FileKind; decks?: Deck[]; includeStudents: boolean }): ExportFile {
+export function buildExport(screens: Screen[], opts: { kind: FileKind; decks?: Deck[]; classes?: ClassList[]; includeStudents: boolean }): ExportFile {
   return {
     app: FILE_APP,
     kind: opts.kind,
@@ -176,12 +186,14 @@ export function buildExport(screens: Screen[], opts: { kind: FileKind; decks?: D
     exportedAt: new Date().toISOString(),
     screens: opts.includeStudents ? screens : screens.map(stripStudentData),
     ...(opts.decks ? { decks: opts.decks } : {}),
+    ...(opts.classes && opts.includeStudents ? { classes: opts.classes } : {}),
   };
 }
 
 export interface ParsedImport {
   screens: Screen[];
   decks: Deck[];
+  classes: ClassList[];
   skippedWidgets: number;
   skippedScreens: number;
 }
@@ -225,6 +237,7 @@ export function parseImport(textContent: string): ParsedImport {
       skippedScreens++;
     }
   }
-  if (screens.length === 0) throw new ImportError('empty', 'Súbor neobsahuje žiadnu platnú obrazovku.');
-  return { screens, decks, skippedWidgets, skippedScreens };
+  const classes = (Array.isArray(d.classes) ? d.classes.slice(0, 100) : []).map((c) => sanitizeClass(c)).filter((c): c is ClassList => !!c).map((c) => ({ ...c, id: uid() }));
+  if (screens.length === 0 && classes.length === 0) throw new ImportError('empty', 'Súbor neobsahuje žiadnu platnú obrazovku.');
+  return { screens, decks, classes, skippedWidgets, skippedScreens };
 }

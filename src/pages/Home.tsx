@@ -1,8 +1,9 @@
 import { useMemo, useRef, useState } from 'react';
-import { Archive, Copy, FolderPlus, LayoutTemplate, Pencil, Play, Plus, Search, Settings, Share, Trash2, Upload } from 'lucide-react';
+import { Archive, Copy, Users, FolderPlus, LayoutTemplate, Pencil, Play, Plus, Search, Settings, Share, Trash2, Upload } from 'lucide-react';
 import { ScreenThumb } from '@/components/Stage';
 import { ConfirmDialog, Modal } from '@/components/ui';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { ClassesDialog } from '@/components/ClassesDialog';
 import { t } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { fold, relativeTime } from '@/lib/time';
@@ -138,6 +139,8 @@ export function HomePage() {
   const corrupted = useApp((s) => s.corrupted);
   const [query, setQuery] = useState('');
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [classesOpen, setClassesOpen] = useState(false);
+  const classes = useApp((s) => s.classes);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const q = fold(query.trim());
@@ -176,6 +179,9 @@ export function HomePage() {
           <h1 className="text-2xl font-extrabold leading-tight">{t('app.name')}</h1>
           <p className="text-sm text-muted">{t('app.tagline')}</p>
         </div>
+        <button type="button" className="btn" data-testid="classes-btn" onClick={() => setClassesOpen(true)}>
+          <Users size={18} aria-hidden /> {t('classes.open')}
+        </button>
         <AccountButton />
         <button type="button" className="btn btn-icon" aria-label={t('settings.title')} title={t('settings.title')} onClick={() => setSettingsOpen(true)}>
           <Settings size={20} aria-hidden />
@@ -274,10 +280,10 @@ export function HomePage() {
           <button
             type="button"
             className="btn"
-            disabled={total === 0}
+            disabled={total === 0 && Object.keys(classes).length === 0}
             data-testid="backup-export"
             onClick={() => {
-              downloadText(`teacherscreen-zaloha-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(buildExport(Object.values(screens), { kind: 'backup', decks: Object.values(decks), includeStudents: true }), null, 2));
+              downloadText(`teacherscreen-zaloha-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(buildExport(Object.values(screens), { kind: 'backup', decks: Object.values(decks), classes: Object.values(classes), includeStudents: true }), null, 2));
               toast(t('io.exportDone'), { tone: 'success' });
             }}
           >
@@ -289,6 +295,7 @@ export function HomePage() {
         </div>
       </section>
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ClassesDialog open={classesOpen} onClose={() => setClassesOpen(false)} />
     </div>
   );
 }

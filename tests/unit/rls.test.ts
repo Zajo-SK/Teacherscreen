@@ -45,6 +45,7 @@ beforeAll(async () => {
     grant usage on schema public to anon, authenticated;
   `);
   await db.exec(readFileSync('supabase/migrations/0001_init.sql', 'utf8'));
+  await db.exec(readFileSync('supabase/migrations/0002_class_lists.sql', 'utf8'));
   for (const [id, mail] of [[A, 'a@skola.sk'], [B, 'b@skola.sk'], [C, 'c@skola.sk'], [ADMIN, 'admin@skola.sk']]) {
     await db.query('insert into auth.users (id, email) values ($1, $2)', [id, mail]);
   }
@@ -182,5 +183,41 @@ describe('RLS: roly, školské šablóny a nastavenia', () => {
     const r = (await as(A, () => db.query('select * from public.find_user_by_email($1)', ['b@skola.sk']))) as { rows: Record<string, unknown>[] };
     expect(Object.keys(r.rows[0]!).sort()).toEqual(['display_name', 'id']);
     expect(await denied(null, `select * from public.find_user_by_email('b@skola.sk')`)).toBe(true);
+  });
+});
+
+describe('RLS: triedy (zoznamy žiakov)', () => {
+  let classId = '';
+  it('učiteľ vloží a číta svoju triedu', async () => {
+    const r = (await as(A, () => db.query<{ id: string }>(`insert into public.class_lists (name, names) values ('5.A', '["Anna","Peter"]') returning id`))) as { rows: { id: string }[] };
+    classId = r.rows[0]!.id;
+    expect(((await as(A, () => db.query('select * from public.class_lists'))) as { rows: unknown[] }).rows).toHaveLength(1);
+  });
+  it('iný učiteľ, administrátor ani anonym zoznam nevidia', async () => {
+    for (const u of [B, ADMIN]) {
+      expect(((await as(u, () => db.query('select * from public.class_lists where id = $1', [classId]))) as { rows: unknown[] }).rows).toHaveLength(0);
+    }
+    expect(await denied(null, 'select * from public.class_lists')).toBe(true);
+  });
+  it('cudzí učiteľ ho nemôže zmeniť, zmazať ani prepísať cez upsert s rovnakým ID', async () => {
+    const u = (await as(B, () => db.query(`update public.class_lists set names = '[]' where id = $1`, [classId]))) as { affectedRows: number };
+    expect(u.affectedRows).toBe(0);
+    const d = (await as(B, () => db.query('delete from public.class_lists where id = $1', [classId]))) as { affectedRows: number };
+    expect(d.affectedRows).toBe(0);
+    expect(await denied(B, `insert into public.class_lists (id, name, names) values ($1, 'hack', '[]') on conflict (id) do update set name = 'hack'`, [classId])).toBe(true);
+    expect(await denied(B, `insert into public.class_lists (owner_id, name) values ($1, 'podvrh')`, [A])).toBe(true);
+    expect((await q('select name from public.class_lists where id = $1', [classId]))[0]).toEqual({ name: '5.A' });
+  });
+  it('zdieľanie obrazovky nesprístupní triedy príjemcovi', async () => {
+    await as(A, () => db.query(`insert into public.screen_shares (screen_id, grantee_id) values ($1, $2)`, [screenA, B]));
+    expect(((await as(B, () => db.query('select * from public.class_lists'))) as { rows: unknown[] }).rows).toHaveLength(0);
+  });
+  it('triedu nemožno previesť na iného vlastníka a zoznam je obmedzený na 200 mien', async () => {
+    expect(await denied(A, 'update public.class_lists set owner_id = $1 where id = $2', [B, classId])).toBe(true);
+    expect(await denied(A, `insert into public.class_lists (name, names) values ('x', $1::jsonb)`, [JSON.stringify(Array.from({ length: 201 }, (_, i) => `m${i}`))])).toBe(true);
+  });
+  it('vlastník môže triedu zmazať', async () => {
+    const d = (await as(A, () => db.query('delete from public.class_lists where id = $1', [classId]))) as { affectedRows: number };
+    expect(d.affectedRows).toBe(1);
   });
 });

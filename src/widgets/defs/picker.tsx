@@ -4,14 +4,16 @@ import { z } from 'zod';
 import { t } from '@/i18n';
 import { Toggle } from '@/components/forms';
 import { randomInt } from '@/lib/random';
-import { bool, str, strList } from '../fields';
+import { bool, nullableStr, str, strList } from '../fields';
 import { useRuntime } from '../runtime';
-import { NamesEditor } from '../NamesEditor';
+import { ClassPicker, NamesEditor } from '../NamesEditor';
+import { useStudentNames } from '../studentNames';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 
 const schema = z.object({
   names: strList(200, 60),
+  classId: nullableStr,
   picked: strList(200, 60),
   current: str('', 60),
   excludePicked: bool(true),
@@ -40,9 +42,10 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const remaining = remainingNames(config.names, config.picked);
-  const pool = config.excludePicked ? remaining : config.names;
-  const empty = config.names.length === 0;
+  const { names } = useStudentNames(config, update);
+  const remaining = remainingNames(names, config.picked);
+  const pool = config.excludePicked ? remaining : names;
+  const empty = names.length === 0;
   const exhausted = !empty && pool.length === 0;
 
   const finish = (name: string) => {
@@ -91,7 +94,7 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
       </div>
       {!empty && (
         <div className="wmuted" style={{ fontSize: 'min(3.6cqw, 6cqh)' }}>
-          {t('w.picker.remaining', { n: remaining.length, total: config.names.length })}
+          {t('w.picker.remaining', { n: remaining.length, total: names.length })}
         </div>
       )}
     </div>
@@ -99,9 +102,11 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
 }
 
 function Settings({ config, update }: SettingsProps<Config>) {
+  const sn = useStudentNames(config, update, { picked: [], current: '' });
   return (
     <>
-      <NamesEditor names={config.names} onChange={(names) => update({ names, picked: [], current: '' })} />
+      <ClassPicker classes={sn.classes} classId={config.classId} hasNames={config.names.length > 0} onPick={sn.pickClass} onSave={sn.saveAsClass} />
+      <NamesEditor names={sn.names} onChange={sn.setNames} />
       <Toggle label={t('w.picker.exclude')} checked={config.excludePicked} onChange={(excludePicked) => update({ excludePicked })} />
       <Toggle label={t('w.picker.animate')} checked={config.animate} onChange={(animate) => update({ animate })} />
       <p className="text-sm text-muted">{t('w.picker.privacy')}</p>
@@ -121,6 +126,6 @@ export const pickerWidget: WidgetDefinition<Config> = {
   Component: PickerWidget,
   Settings,
   hasStudentData: true,
-  stripStudentData: (c) => ({ ...c, names: [], picked: [], current: '' }),
+  stripStudentData: (c) => ({ ...c, names: [], picked: [], current: '' }), // classId ostáva – je to len odkaz, nie mená
 };
 

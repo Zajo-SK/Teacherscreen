@@ -235,3 +235,24 @@ describe('ďalšie widgety', () => {
     vi.useRealTimers();
   });
 });
+
+describe('triedy vo widgetoch', () => {
+  const classes = [{ id: 'c1', name: '5.A', names: ['Jana', 'Karol', 'Ľuboš'], updatedAt: 1 }];
+  it('Náhodný výber berie mená z vybranej triedy', async () => {
+    const user = userEvent.setup();
+    render(<WidgetHarness type="picker" config={{ classId: 'c1', names: [], animate: false, excludePicked: true }} runtime={{ classes }} />);
+    const seen: string[] = [];
+    for (let i = 0; i < 3; i++) {
+      await user.click(screen.getByRole('button', { name: /vybrať žiaka/i }));
+      seen.push(screen.getByTestId('picker-result').textContent!);
+    }
+    expect(seen.slice().sort()).toEqual(['Jana', 'Karol', 'Ľuboš'].sort());
+  });
+  it('Rozdeľovač skupín použije triedu a nezobrazí cudzie mená', async () => {
+    const user = userEvent.setup();
+    render(<WidgetHarness type="groups" config={{ classId: 'c1', names: ['Iný'], mode: 'count', value: 2 }} runtime={{ classes }} />);
+    await user.click(screen.getByRole('button', { name: /rozdeliť do skupín/i }));
+    const shown = screen.getAllByRole('listitem').map((l) => l.textContent);
+    expect(shown.sort()).toEqual(['Jana', 'Karol', 'Ľuboš'].sort());
+  });
+});

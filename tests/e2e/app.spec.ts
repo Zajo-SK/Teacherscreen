@@ -329,6 +329,30 @@ test.describe('akceptačné scenáre', () => {
     await context.setOffline(false);
   });
 
+  test('triedy: uloženie zoznamu žiakov a použitie vo widgetoch, prežije obnovenie stránky', async ({ page }) => {
+    await openApp(page);
+    await page.getByTestId('classes-btn').click();
+    await page.getByTestId('new-class').click();
+    await page.getByLabel('Názov triedy').fill('7.B');
+    await page.getByLabel(/Vložiť zoznam/).fill('Adam, Berta, Cyril, Dana');
+    await page.getByRole('button', { name: 'Nahradiť zoznam' }).click();
+    await expect(page.getByTestId('class-list')).toContainText('7.B');
+    await page.keyboard.press('Escape');
+    await newScreen(page);
+    await addWidget(page, 'groups');
+    await page.getByTestId('inspector').getByLabel('Trieda').selectOption({ label: '7.B (4)' });
+    await page.getByTestId('inspector').getByLabel('Počet skupín').fill('2');
+    await widget(page, 'groups').getByRole('button', { name: /Rozdeliť/ }).click();
+    expect((await widget(page, 'groups').locator('li').allTextContents()).sort()).toEqual(['Adam', 'Berta', 'Cyril', 'Dana']);
+    await waitSaved(page);
+    await page.reload();
+    await expect(widget(page, 'groups')).toContainText('Skupina 1');
+    // druhá trieda použitá v inom widgete tej istej obrazovky
+    await addWidget(page, 'picker');
+    await page.getByTestId('inspector').getByLabel('Trieda').selectOption({ label: '7.B (4)' });
+    await expect(widget(page, 'picker')).toContainText('Zostáva 4 z 4');
+  });
+
   test('téma: tmavý režim sa dá zapnúť a pretrvá', async ({ page }) => {
     await openApp(page);
     await page.getByRole('button', { name: 'Nastavenia' }).click();

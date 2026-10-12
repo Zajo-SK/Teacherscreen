@@ -4,6 +4,11 @@ export const widgets = {
   'cat.class': 'Trieda',
   'cat.tools': 'Nástroje',
 
+  'classes.use': 'Trieda',
+  'classes.own': 'Vlastný zoznam (iba v tomto widgete)',
+  'classes.linkedHint': 'Mená sa berú z triedy; úpravy zoznamu sa uložia do triedy a použijú aj v ďalších widgetoch.',
+  'classes.namePlaceholder': 'Názov novej triedy (napr. 5.A)',
+  'classes.saveAs': 'Uložiť ako triedu',
   'names.title': 'Zoznam mien ({n})',
   'names.addPlaceholder': 'Pridať meno…',
   'names.none': 'Zoznam je prázdny.',

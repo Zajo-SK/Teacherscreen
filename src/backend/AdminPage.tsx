@@ -5,6 +5,7 @@ import { navigate } from '@/lib/router';
 import { useApp } from '@/store/useApp';
 import { api, type Profile, type Role } from './api';
 import { describeError, useCloud } from './useCloud';
+import { emailToNick } from './nick';
 import { Segmented } from '@/components/forms';
 import { ASPECTS } from '@/editor/aspects';
 import type { AspectId, ThemeMode } from '@/types';
@@ -48,10 +49,10 @@ export function AdminPage() {
             <ul>
               {users.map((u) => (
                 <li key={u.id} className="flex flex-wrap items-center gap-3 border-b border-line py-2">
-                  <span className="min-w-0 flex-1 truncate">{u.email}</span>
+                  <span className="min-w-0 flex-1 truncate">{u.display_name || emailToNick(u.email)}</span>
                   <select
                     className="input w-auto"
-                    aria-label={`${t('cloud.setRole')}: ${u.email}`}
+                    aria-label={`${t('cloud.setRole')}: ${u.display_name || emailToNick(u.email)}`}
                     value={u.role}
                     disabled={u.id === userId}
                     onChange={async (e) => {

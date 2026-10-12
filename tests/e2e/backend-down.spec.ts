@@ -21,9 +21,9 @@ test.describe('11: nedostupný backend', () => {
   test('prihlásenie ukáže zrozumiteľnú správu o nedostupnom serveri', async ({ page }) => {
     await page.goto('/');
     await page.getByTestId('account-btn').click();
-    await page.getByLabel('E‑mail').fill('ucitel@skola.sk');
+    await page.getByLabel('Prezývka (nick)').fill('ucitel5a');
     await page.getByLabel('Heslo').fill('heslo12345');
-    await page.getByRole('dialog').getByRole('button', { name: 'Prihlásiť sa' }).last().click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Prihlásiť sa', exact: true }).last().click();
     await expect(page.getByRole('alert')).toContainText('Server nie je dostupný', { timeout: 20_000 });
     await page.keyboard.press('Escape');
     await newScreen(page);

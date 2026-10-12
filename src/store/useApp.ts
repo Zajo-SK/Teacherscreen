@@ -3,6 +3,7 @@ import {
   CANVAS_SIZES,
   DEFAULT_SETTINGS,
   type AspectId,
+  type ClassList,
   type Background,
   type Deck,
   type Screen,
@@ -22,6 +23,7 @@ import { createWidget, getWidgetDefinition, sanitizeConfig } from '@/widgets/reg
 import { openStorage, type StorageAdapter } from '@/storage/db';
 import { AutoSaver, type SaveStatus } from '@/storage/autosave';
 import { t } from '@/i18n';
+import { addTombstone } from '@/lib/tombstones';
 
 export interface Toast {
   id: string;
@@ -41,6 +43,7 @@ interface AppState {
   corrupted: number;
   screens: Record<string, Screen>;
   decks: Record<string, Deck>;
+  classes: Record<string, ClassList>;
   settings: Settings;
   saveStatus: SaveStatus;
   selection: string[];
@@ -64,6 +67,15 @@ interface AppState {
   renameDeck: (id: string, name: string) => void;
   deleteDeck: (id: string) => void;
   importParsed: (p: ParsedImport) => string[];
+  /** Prevezme obrazovku zo servera so zachovaným časom úpravy (nepovažuje sa za lokálnu zmenu). */
+  applyRemoteScreen: (s: Screen) => void;
+  removeLocalScreen: (id: string) => void;
+  saveClass: (c: { id?: string; name: string; names: string[] }) => string;
+  deleteClass: (id: string) => void;
+  applyRemoteClass: (c: ClassList) => void;
+  removeLocalClass: (id: string) => void;
+  /** Odstráni všetky lokálne dáta (obrazovky, zostavy, triedy). */
+  wipeLocal: () => void;
 
   select: (ids: string[], additive?: boolean) => void;
   addWidget: (screenId: string, type: WidgetType) => string | null;
@@ -103,6 +115,7 @@ function loadSettings(): Settings {
       sound: typeof raw.sound === 'boolean' ? raw.sound : DEFAULT_SETTINGS.sound,
       animations: typeof raw.animations === 'boolean' ? raw.animations : DEFAULT_SETTINGS.animations,
       snapToGrid: typeof raw.snapToGrid === 'boolean' ? raw.snapToGrid : DEFAULT_SETTINGS.snapToGrid,
+      syncClasses: raw.syncClasses === true,
     };
   } catch {
     return DEFAULT_SETTINGS;
@@ -146,6 +159,7 @@ export const useApp = create<AppState>()((set, get) => {
     corrupted: 0,
     screens: {},
     decks: {},
+    classes: {},
     settings: loadSettings(),
     saveStatus: 'saved',
     selection: [],
@@ -157,7 +171,7 @@ export const useApp = create<AppState>()((set, get) => {
       const adapter = storage ?? (await openStorage());
       saver = new AutoSaver(
         adapter,
-        { screen: (id) => get().screens[id], deck: (id) => get().decks[id] },
+        { screen: (id) => get().screens[id], deck: (id) => get().decks[id], cls: (id) => get().classes[id] },
         (status, error) => {
           set({ saveStatus: status });
           if (status === 'error') {
@@ -173,6 +187,7 @@ export const useApp = create<AppState>()((set, get) => {
         corrupted: data.corrupted,
         screens: Object.fromEntries(data.screens.map((s) => [s.id, s])),
         decks: Object.fromEntries(data.decks.map((d) => [d.id, d])),
+        classes: Object.fromEntries(data.classes.map((c) => [c.id, c])),
         saveStatus: 'saved',
       });
     },
@@ -231,6 +246,7 @@ export const useApp = create<AppState>()((set, get) => {
         return { screens: rest, history: hist, selection: [] };
       });
       saver?.removeScreen(id);
+      addTombstone('screens', id);
     },
     updateScreenMeta(id, p) {
       mutate(id, (s) => ({ ...s, name: p.name !== undefined ? p.name.slice(0, 120) : s.name, description: p.description !== undefined ? p.description.slice(0, 500) : s.description }), { history: false });
@@ -301,9 +317,63 @@ export const useApp = create<AppState>()((set, get) => {
           ids.push(s.id);
           saver?.markScreen(s.id);
         });
-        return { screens, decks };
+        const classes = { ...st.classes };
+        p.classes.forEach((c) => {
+          classes[c.id] = c;
+          saver?.markClass(c.id);
+        });
+        return { screens, decks, classes };
       });
       return ids;
+    },
+    applyRemoteScreen(s) {
+      const cur = get().screens[s.id];
+      setScreen({ ...s, deckId: cur?.deckId ?? null, order: cur?.order ?? s.order, lastOpenedAt: cur?.lastOpenedAt ?? null });
+      saver?.markScreen(s.id);
+    },
+    removeLocalScreen(id) {
+      set((st) => {
+        const { [id]: _r, ...rest } = st.screens;
+        void _r;
+        return { screens: rest };
+      });
+      saver?.removeScreen(id);
+    },
+    saveClass(c) {
+      const id = c.id ?? uid();
+      const names = c.names.map((n) => n.trim().slice(0, 60)).filter(Boolean).slice(0, 200);
+      const rec: ClassList = { id, name: c.name.trim().slice(0, 80) || t('classes.untitled'), names, updatedAt: Date.now() };
+      set((st) => ({ classes: { ...st.classes, [id]: rec } }));
+      saver?.markClass(id);
+      return id;
+    },
+    deleteClass(id) {
+      set((st) => {
+        const { [id]: _r, ...rest } = st.classes;
+        void _r;
+        return { classes: rest };
+      });
+      saver?.removeClass(id);
+      addTombstone('classes', id);
+    },
+    applyRemoteClass(c) {
+      set((st) => ({ classes: { ...st.classes, [c.id]: c } }));
+      saver?.markClass(c.id);
+    },
+    removeLocalClass(id) {
+      set((st) => {
+        const { [id]: _r, ...rest } = st.classes;
+        void _r;
+        return { classes: rest };
+      });
+      saver?.removeClass(id);
+    },
+    wipeLocal() {
+      const st = get();
+      Object.keys(st.screens).forEach((id) => saver?.removeScreen(id));
+      Object.keys(st.decks).forEach((id) => saver?.removeDeck(id));
+      Object.keys(st.classes).forEach((id) => saver?.removeClass(id));
+      set({ screens: {}, decks: {}, classes: {}, history: {}, selection: [] });
     },
 
     // ---- widgety

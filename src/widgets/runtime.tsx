@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { WidgetInstance } from '@/types';
+import type { ClassList, WidgetInstance } from '@/types';
 
 /** Informácie o okolí widgetu (nastavenia aplikácie, ostatné widgety na obrazovke). Widgety tak nezávisia od store. */
 export interface WidgetRuntime {
@@ -8,6 +8,9 @@ export interface WidgetRuntime {
   /** Aktuálny pomer škálovania plochy (px obrazovky / jednotku plochy). */
   scale: number;
   widgets: WidgetInstance[];
+  /** Uložené triedy (zoznamy žiakov) učiteľa. */
+  classes: ClassList[];
+  saveClass: (c: { id?: string; name: string; names: string[] }) => string;
   patchConfig: (id: string, patch: Record<string, unknown>) => void;
   patchGeometry: (id: string, patch: { w?: number; h?: number }) => void;
 }
@@ -17,6 +20,8 @@ export const defaultRuntime: WidgetRuntime = {
   animations: false,
   scale: 1,
   widgets: [],
+  classes: [],
+  saveClass: () => '',
   patchConfig: () => undefined,
   patchGeometry: () => undefined,
 };

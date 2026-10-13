@@ -93,3 +93,44 @@ test.describe('používateľský zážitok', () => {
     await expect(page.getByTestId('stage').locator('xpath=..')).toHaveCSS('background-image', /data:image\/svg\+xml/);
   });
 });
+
+test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', () => {
+  const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGP4z8Dwn+E/AAn9Av4b0/bBAAAAAElFTkSuQmCC', 'base64');
+  const thumb = 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Hora.jpg/480px-Hora.jpg';
+  const mkPage = (title: string, license = 'CC BY-SA 4.0') => ({
+    title,
+    index: 1,
+    imageinfo: [{ thumburl: thumb, url: thumb, width: 4000, height: 2400, mime: 'image/jpeg', extmetadata: { LicenseShortName: { value: license }, Artist: { value: '<a>Peter Fotograf</a>' } } }],
+  });
+
+  test('výber fotky nastaví pozadie, zobrazí autora a prežije obnovenie; pri výpadku ukáže chybu', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('ts.notour', '1'));
+    let online = true;
+    await page.route('https://commons.wikimedia.org/w/api.php**', (route) => {
+      if (!online) return route.abort();
+      const url = new URL(route.request().url());
+      const body = url.searchParams.get('generator') === 'search' ? { query: { pages: [mkPage('File:Hora.jpg'), mkPage('File:Zakazana.jpg', 'CC BY-NC 4.0')] } } : { query: { pages: [{ title: 'File:Hora.jpg', imageinfo: [{ thumburl: thumb, url: thumb }] }] } };
+      return route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify(body) });
+    });
+    await page.route('https://upload.wikimedia.org/**', (route) => route.fulfill({ status: 200, contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: PNG }));
+
+    await openApp(page);
+    await newScreen(page);
+    await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
+    await page.getByRole('button', { name: /Fotky z internetu/ }).click();
+    await expect(page.getByTestId('photo-item')).toHaveCount(1); // fotka s NC licenciou je vyradená
+    await page.getByTestId('photo-item').click();
+    await expect(page.getByTestId('bg-credit')).toContainText('Peter Fotograf · CC BY-SA 4.0 · Wikimedia Commons');
+    await expect(page.getByTestId('stage').locator('xpath=..')).toHaveCSS('background-image', /data:image\/jpeg/);
+    await page.waitForTimeout(700);
+    await page.reload();
+    await expect(page.getByTestId('bg-credit')).toBeVisible();
+
+    // výpadok siete
+    online = false;
+    await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
+    await page.getByRole('button', { name: /Fotky z internetu/ }).click();
+    await page.getByRole('tab', { name: 'Hory' }).click();
+    await expect(page.getByTestId('photo-error')).toBeVisible();
+  });
+});

@@ -57,6 +57,7 @@ tests/unit, tests/e2e      automatizované testy
 ## Vzhľad a používanie
 
 * **Knižnica pozadí:** 36 originálnych ilustrácií (prelievanie, vlny, tvary, krajina, vzory, školské) vo výbere pozadia obrazovky (panel vpravo, keď nie je vybraný žiadny widget). Generujú sa v kóde ako SVG (`src/lib/backgrounds.ts`) – bez licenčných obmedzení, bez sťahovania z internetu, fungujú offline a obrazovka nesie len ID.
+* **Fotky z internetu:** v tom istom paneli tlačidlo *Fotky z internetu* – vybrané fotografie z Wikimedia Commons (kategória „Featured pictures“, iba voľné licencie CC0 / verejná doména / CC BY / CC BY‑SA, bez NC/ND) podľa tém (krajina, hory, more…). Nepotrebuje kľúč; vyžaduje internet. Vybraná fotka sa zmenší na 1920 px a uloží do obrazovky (funguje potom offline) a pri CC BY(-SA) sa v rohu zobrazuje autor a licencia. Dopyty idú priamo z prehliadača na wikimedia.org. Vyhľadávanie a CORS som overil len na simulovanej odpovedi (z vývojového prostredia nie je prístup na internet) – pozri obmedzenia.
 * **Nastavenia widgetu:** vyberte widget a kliknite na **Nastavenia** v lište nad plochou alebo na modré koliesko priamo na widgete. Bez vybraného widgetu panel nastavuje pozadie a pomer strán.
 * **Popisky ikon:** pri nabehnutí myšou, pri fokuse klávesnicou aj pri dlhom stlačení prstom sa zobrazí, čo ikona robí.
 * **Úvodná prehliadka:** raz pre každého používateľa na domovskej stránke a v editore; znova ju spustíte v Nastaveniach.
@@ -115,6 +116,7 @@ Implementované a otestované: všetkých 15 widgetov (text, hodiny, časovač, 
 Obmedzenia a nedokončené:
 * **Hlasovanie z osobných zariadení žiakov nie je implementované.** Widget Anketa je lokálny (hlasy zapisuje učiteľ) a je tak aj označený; samostatný serverový modul by bol ďalšou etapou.
 * Backend je overený na úrovni databázy (RLS testy v PGlite) a synchronizácia proti lokálnej náhrade Supabase, **nie však proti živej inštancii Supabase** – po prvom nastavení si prejdite registráciu a synchronizáciu na dvoch zariadeniach. Zdieľanie s učiteľom a odkazy majú iba databázové testy.
+* **Fotky z Wikimedia Commons** nemohli byť v tomto prostredí overené proti živému serveru (bez prístupu na internet); testy používajú simulované odpovede. Ak by sa dopyt nepodaril, panel ukáže chybu a ostatné pozadia fungujú ďalej.
 * Rozhranie je len v slovenčine (mechanizmus pre ďalšie jazyky je pripravený v `src/i18n`).
 * Synchronizujú sa plochy a (voliteľne) triedy; zostavy (poradie plôch) sa medzi zariadeniami nesynchronizujú. Pri súčasnej úprave v dvoch oknách toho istého prehliadača platí „posledný zapísal vyhráva“.
 * E2E testy bežia v Chromiu (vrátane emulácie iPadu a 4K); Firefox/Safari neboli v tomto prostredí k dispozícii.

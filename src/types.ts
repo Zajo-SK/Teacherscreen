@@ -50,7 +50,7 @@ export interface WidgetInstance<C = unknown> {
 export type Background =
   | { kind: 'color'; value: string }
   | { kind: 'gradient'; value: string }
-  | { kind: 'image'; value: string }
+  | { kind: 'image'; value: string; /** Autor a licencia fotky (ak je z knižnice fotiek). */ credit?: string }
   /** Predvoľba z knižnice pozadí (ID z lib/backgrounds.ts). */
   | { kind: 'preset'; value: string };
 

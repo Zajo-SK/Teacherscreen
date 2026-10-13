@@ -42,4 +42,4 @@ export async function waitSaved(page: Page) {
 }
 
 /** Malý platný PNG (2×1 px) pre test nahrávania obrázka. */
-export const PNG_2x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAYAAAD0In+KAAAAEklEQVR4nGP4z8Dwn4GBgQEAABDvAf9tR5KFAAAAAElFTkSuQmCC', 'base64');
+export const PNG_2x1 = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVR4nGP4z8Dwn+E/AAn9Av4b0/bBAAAAAElFTkSuQmCC', 'base64');

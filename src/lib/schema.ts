@@ -40,7 +40,10 @@ export function sanitizeBackground(raw: unknown): Background {
   const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
   if (r.kind === 'color' && color.safeParse(r.value).success) return { kind: 'color', value: r.value as string };
   if (r.kind === 'gradient' && gradient.safeParse(r.value).success) return { kind: 'gradient', value: r.value as string };
-  if (r.kind === 'image' && isSafeImageDataUrl(r.value)) return { kind: 'image', value: r.value };
+  if (r.kind === 'image' && isSafeImageDataUrl(r.value)) {
+    const credit = typeof r.credit === 'string' ? r.credit.replace(/[\u0000-\u001f<>]/g, '').slice(0, 200) : '';
+    return credit ? { kind: 'image', value: r.value, credit } : { kind: 'image', value: r.value };
+  }
   if (r.kind === 'preset' && isBgPresetId(r.value)) return { kind: 'preset', value: r.value };
   return DEFAULT_BACKGROUND;
 }

@@ -4,6 +4,7 @@ import { t } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import type { Background } from '@/types';
 import { loadImageFile } from '@/lib/image';
+import { PhotoBrowser } from './PhotoBrowser';
 import { BG_CATEGORIES, BG_PRESETS, bgPresetUrl, type BgCategory } from '@/lib/backgrounds';
 
 const COLORS = ['#ffffff', '#fbf8f3', '#fff1b8', '#d7f5e6', '#d6ecff', '#ffe0ec', '#e9e4ff', '#2a2540', '#14121f', '#14532d', '#1e3a8a', '#7c2d12'];
@@ -71,6 +72,7 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
           />
         ))}
       </div>
+      <PhotoBrowser screenId={screenId} />
       <span className="label">{t('bg.colors')}</span>
       <div className="mb-3 flex flex-wrap gap-2">
         {COLORS.map((c) => swatch({ kind: 'color', value: c }, c))}
@@ -78,6 +80,11 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
       </div>
       <span className="label">{t('bg.gradients')}</span>
       <div className="mb-3 flex flex-wrap gap-2">{GRADIENTS.map((g, i) => swatch({ kind: 'gradient', value: g }, `${t('bg.gradients')} ${i + 1}`))}</div>
+      {background.kind === 'image' && background.credit && (
+        <p className="mb-3 text-xs text-muted" data-testid="bg-credit-info">
+          {t('bg.photoBy')}: {background.credit}
+        </p>
+      )}
       <span className="label">{t('bg.image')}</span>
       <div className="flex flex-wrap gap-2">
         <button type="button" className="btn" disabled={busy} onClick={() => file.current?.click()}>

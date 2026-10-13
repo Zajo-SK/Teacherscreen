@@ -15,7 +15,7 @@ export function Filmstrip({ screenId }: { screenId: string }) {
   const idx = list.findIndex((s) => s.id === screenId);
   const deckName = current.deckId ? decks[current.deckId]?.name : null;
   return (
-    <nav aria-label={t('editor.screens')} className="flex items-center gap-2 border-t border-line bg-surface px-2 py-2">
+    <nav data-tour="screens" aria-label={t('editor.screens')} className="flex items-center gap-2 border-t border-line bg-surface px-2 py-2">
       <span className="hidden max-w-32 truncate text-sm font-semibold text-muted md:block" title={deckName ?? t('home.noDeck')}>
         {deckName ?? t('editor.screens')}
       </span>

@@ -33,6 +33,8 @@ export function describeError(e: unknown): string {
 
 const isNetwork = (m: string) => /network|fetch|abort|failed to fetch|load failed/i.test(m);
 
+let initStarted = false;
+
 export const useCloud = create<CloudState>()((set, get) => {
   async function loadSession() {
     try {
@@ -70,7 +72,8 @@ export const useCloud = create<CloudState>()((set, get) => {
     lastSyncAt: null,
     error: null,
     async init() {
-      if (!isBackendConfigured) return;
+      if (!isBackendConfigured || initStarted) return;
+      initStarted = true;
       await loadSession();
       try {
         const sb = await getSupabase();

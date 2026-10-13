@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { addWidget, newScreen, waitSaved } from './helpers';
 
 // Táto zostava je zostavená s nastaveným, ale NEDOSTUPNÝM backendom (http://127.0.0.1:9).

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { readFileSync } from 'node:fs';
 import { addWidget, dragBy, newScreen, openApp, PNG_2x1, rectOf, stageScale, waitSaved, widget } from './helpers';
 

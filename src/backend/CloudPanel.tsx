@@ -32,7 +32,7 @@ export function AccountButton() {
   if (!isBackendConfigured) return null;
   return (
     <>
-      <button type="button" className="btn" data-testid="account-btn" onClick={() => setOpen(true)}>
+      <button type="button" className="btn" data-tour="account" data-testid="account-btn" onClick={() => setOpen(true)}>
         {status === 'offline' || syncStatus === 'offline' ? <CloudOff size={18} aria-hidden /> : <User size={18} aria-hidden />}
         <span className="max-w-40 truncate">{status === 'signedIn' ? nick : t('cloud.signIn')}</span>
         {syncStatus === 'needsChoice' && <span className="size-2 rounded-full bg-danger" aria-label={t('sync.needsChoice')} />}

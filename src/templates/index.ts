@@ -14,7 +14,6 @@ export interface ScreenTemplate {
 
 type Cfg = Record<string, unknown>;
 const cd = (minutes: number): Cfg => ({ durationMs: minutes * 60_000, remainingMs: minutes * 60_000 });
-const grad = (a: string, b: string): Background => ({ kind: 'gradient', value: `linear-gradient(135deg,${a} 0%,${b} 100%)` });
 
 /** Pomocník na skladanie widgetov – z-poradie sa nastaví podľa poradia v zozname. */
 function layout(items: { type: WidgetType; x: number; y: number; w: number; h: number; config?: Cfg; colors?: WidgetInstance['colors'] }[]): WidgetInstance[] {
@@ -29,7 +28,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Ranný kruh',
     description: 'Privítanie, plán dňa, nálada triedy a výber žiaka, ktorý otvorí kruh.',
     aspect: '16:9',
-    background: grad('#fef3c7', '#fde68a'),
+    background: { kind: 'preset', value: 'mesh-sunrise' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1040, h: 270, colors: { bg: '#ffffff', fg: '#0f172a' }, config: { title: 'Dobré ráno! 🌞', body: 'Sadnite si do kruhu, pozdravte svojho suseda a povedzte mu niečo milé.', fontSize: 46, align: 'left', highlight: 'warning' } },
@@ -45,7 +44,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Samostatná práca',
     description: 'Zadanie úlohy, postup, časovač a semafor hluku pre tichú samostatnú prácu.',
     aspect: '16:9',
-    background: grad('#dbeafe', '#e0e7ff'),
+    background: { kind: 'preset', value: 'mesh-ocean' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1200, h: 440, config: { title: 'Úloha', body: 'Vyriešte úlohy 1 až 5 na strane 42 v pracovnom zošite.\nVýsledky si zapíšte do zošita.\nAk skončíte skôr, pokračujte úlohou so hviezdičkou ★.', fontSize: 44, highlight: 'info' } },
@@ -61,7 +60,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Skupinová práca',
     description: 'Náhodné skupiny, zadanie, úlohy v skupine a časovač.',
     aspect: '16:9',
-    background: grad('#dcfce7', '#cffafe'),
+    background: { kind: 'preset', value: 'mesh-mint' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1100, h: 300, config: { title: 'Skupinová úloha', body: 'Spoločne vytvorte plagát na tému „Ako šetriť vodou“. Každý člen skupiny prispeje aspoň jedným nápadom.', fontSize: 40, highlight: 'success' } },
@@ -76,7 +75,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Práca v dielni',
     description: 'Bezpečnosť, postup práce, časovač a pomocník dňa.',
     aspect: '16:9',
-    background: grad('#fed7aa', '#fecaca'),
+    background: { kind: 'preset', value: 'waves-sunset' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1180, h: 330, config: { title: '⚠ Bezpečnosť pri práci', body: 'Používaj ochranné pomôcky. Náradie odkladaj na určené miesto. Pri poranení okamžite zavolaj učiteľa.', fontSize: 42, highlight: 'warning', bold: true } },
@@ -92,7 +91,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Technická výchova',
     description: 'Téma hodiny, náčrt na kreslenie, zoznam materiálu a meranie času operácií.',
     aspect: '16:9',
-    background: grad('#e2e8f0', '#cbd5e1'),
+    background: { kind: 'preset', value: 'school-blueprint' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 760, h: 420, config: { title: 'Téma: Vlastnosti materiálov', body: 'Dnes porovnáme drevo, kov a plast.\n• ktorý materiál je najtvrdší?\n• ktorý sa najlepšie opracúva?\n• kde ich nájdeme v škole?', fontSize: 36, highlight: 'info' } },
@@ -107,7 +106,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Matematická súťaž',
     description: 'Tímy s bodovaním, príklad na tabuli, kocky a časovač na odpoveď.',
     aspect: '16:9',
-    background: grad('#ede9fe', '#fae8ff'),
+    background: { kind: 'preset', value: 'mesh-grape' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1180, h: 340, colors: { bg: '#312e81', fg: '#ffffff' }, config: { title: 'Príklad č. 1', body: '24 × 3 + 8 = ?', fontSize: 96, align: 'center', bold: true } },
@@ -121,7 +120,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Čítanie s porozumením',
     description: 'Text na čítanie, otázky, meranie času čítania a poznámky.',
     aspect: '16:9',
-    background: grad('#fef9c3', '#ecfccb'),
+    background: { kind: 'preset', value: 'school-notebook' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1160, h: 560, config: { title: 'Včely', body: 'Včely žijú v úľoch a pracujú spoločne. Jedna včela donesie za svoj život asi lyžičku medu. Včelár sa o úle stará celý rok. Bez včiel by sme mali oveľa menej ovocia a zeleniny, pretože opeľujú kvety.', fontSize: 44, highlight: 'none' } },
@@ -136,7 +135,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Záverečná reflexia',
     description: 'Tri reflexné otázky, anketa spokojnosti a výber žiaka na zhrnutie.',
     aspect: '16:9',
-    background: grad('#fce7f3', '#e0f2fe'),
+    background: { kind: 'preset', value: 'mesh-candy' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1100, h: 480, config: { title: 'Na záver hodiny', body: '1. Čo nové som sa dnes naučil/a?\n2. Čo mi robilo problém?\n3. Čo by som chcel/a ešte vedieť?', fontSize: 46, highlight: 'info' } },
@@ -151,7 +150,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Test alebo opakovanie',
     description: 'Časovač na celú obrazovku, pravidlá písomky a kontrola pred odovzdaním.',
     aspect: '16:9',
-    background: grad('#f1f5f9', '#e2e8f0'),
+    background: { kind: 'preset', value: 'pat-grid' },
     build: () =>
       layout([
         { type: 'visual-timer', x: 40, y: 40, w: 760, h: 760, config: { ...cd(30), look: 'ring' } },
@@ -166,7 +165,7 @@ export const TEMPLATES: ScreenTemplate[] = [
     name: 'Stanovištia a rotácia skupín',
     description: 'Štyri stanovištia, časovač na rotáciu a rozdelenie žiakov do štyroch skupín.',
     aspect: '16:9',
-    background: grad('#cffafe', '#dbeafe'),
+    background: { kind: 'preset', value: 'waves-blue' },
     build: () =>
       layout([
         { type: 'text', x: 40, y: 40, w: 1180, h: 400, config: { title: 'Stanovištia', body: '1 – Čítanie a otázky\n2 – Pokus s vodou\n3 – Práca s počítačom\n4 – Kreslenie a tvorba\n\nPo zvonení sa skupina posunie na ďalšie stanovište →', fontSize: 38, highlight: 'info' } },

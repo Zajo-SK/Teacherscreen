@@ -11,7 +11,7 @@ import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 const DESIGN_W = 1000;
 const MAX_STROKES = 1500;
 const MAX_POINTS = 60_000;
-const COLORS = ['#111827', '#dc2626', '#2563eb', '#16a34a', '#f59e0b', '#ffffff'];
+const COLORS = ['#1f1b2e', '#ff4d6d', '#6d5dfc', '#12b886', '#f59f00', '#ffffff'];
 const TOOLBAR_H = 96;
 
 const stroke = z.object({
@@ -153,7 +153,7 @@ function DrawWidget({ widget, config, update }: WidgetProps<Config>) {
           <Eraser size={28} aria-hidden />
         </button>
         {[3, 8, 20].map((s) => (
-          <button key={s} type="button" className="wbtn" style={{ padding: '0 14px', borderColor: config.size === s ? '#2563eb' : undefined }} aria-pressed={config.size === s} aria-label={t('w.draw.sizeN', { n: s })} onClick={() => update({ size: s })}>
+          <button key={s} type="button" className="wbtn" style={{ padding: '0 14px', borderColor: config.size === s ? '#6d5dfc' : undefined }} aria-pressed={config.size === s} aria-label={t('w.draw.sizeN', { n: s })} onClick={() => update({ size: s })}>
             <span style={{ width: 8 + s, height: 8 + s, borderRadius: '50%', background: 'currentColor', display: 'block' }} />
           </button>
         ))}
@@ -164,7 +164,7 @@ function DrawWidget({ widget, config, update }: WidgetProps<Config>) {
             aria-label={c}
             aria-pressed={config.color === c && config.tool === 'pen'}
             onClick={() => update({ color: c, tool: 'pen' })}
-            style={{ width: 48, height: 48, borderRadius: '50%', background: c, border: config.color === c ? '5px solid #2563eb' : '3px solid #94a3b8', flex: 'none', cursor: 'pointer' }}
+            style={{ width: 48, height: 48, borderRadius: '50%', background: c, border: config.color === c ? '5px solid #6d5dfc' : '3px solid #b8b2d0', flex: 'none', cursor: 'pointer' }}
           />
         ))}
         <span style={{ flex: 1 }} />

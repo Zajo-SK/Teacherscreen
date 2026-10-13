@@ -13,6 +13,7 @@ import { screensInDeck, useApp } from '@/store/useApp';
 import { TEMPLATES } from '@/templates';
 import type { Deck, Screen } from '@/types';
 import { AccountButton, CloudLibrary } from '@/backend/CloudPanel';
+import { Tour, type TourStep } from '@/components/Tour';
 
 function ScreenCard({ screen }: { screen: Screen }) {
   const decks = useApp((s) => s.decks);
@@ -24,7 +25,7 @@ function ScreenCard({ screen }: { screen: Screen }) {
   const [confirm, setConfirm] = useState(false);
   const [rename, setRename] = useState<string | null>(null);
   return (
-    <article className="card flex flex-col overflow-hidden" data-testid="screen-card" aria-label={screen.name}>
+    <article className="card lift flex flex-col overflow-hidden hover:shadow-xl" data-testid="screen-card" aria-label={screen.name}>
       <button type="button" className="block p-2 pb-0 text-left" onClick={() => navigate({ name: 'edit', id: screen.id })} aria-label={`${t('home.edit')}: ${screen.name}`}>
         <ScreenThumb widgets={screen.widgets} aspect={screen.aspect} background={screen.background} />
       </button>
@@ -128,6 +129,14 @@ function DeckSection({ deck, screens }: { deck: Deck; screens: Screen[] }) {
   );
 }
 
+const HOME_TOUR: TourStep[] = [
+  { target: ['[data-tour=new-screen]'], title: 'tour.home.new.title', text: 'tour.home.new.text' },
+  { target: ['[data-tour=templates]'], title: 'tour.home.templates.title', text: 'tour.home.templates.text' },
+  { target: ['[data-tour=classes]'], title: 'tour.home.classes.title', text: 'tour.home.classes.text' },
+  { target: ['[data-tour=account]'], title: 'tour.home.account.title', text: 'tour.home.account.text' },
+  { target: ['[data-tour=settings]'], title: 'tour.home.settings.title', text: 'tour.home.settings.text' },
+];
+
 export function HomePage() {
   const screens = useApp((s) => s.screens);
   const decks = useApp((s) => s.decks);
@@ -172,18 +181,23 @@ export function HomePage() {
   };
 
   return (
-    <div className="mx-auto min-h-dvh max-w-7xl px-4 pb-16 pt-4">
-      <header className="mb-6 flex flex-wrap items-center gap-3">
-        <img src="favicon.svg" alt="" className="size-10" />
+    <div className="relative mx-auto min-h-dvh max-w-7xl px-4 pb-16 pt-4">
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="float-slow absolute -left-24 top-10 size-72 rounded-full bg-lilac/25 blur-3xl" />
+        <div className="float-slow absolute -right-20 top-40 size-80 rounded-full bg-coral/20 blur-3xl [animation-delay:-3s]" />
+        <div className="float-slow absolute bottom-10 left-1/3 size-72 rounded-full bg-mint/20 blur-3xl [animation-delay:-5s]" />
+      </div>
+      <header className="mb-8 flex flex-wrap items-center gap-3">
+        <img src="favicon.svg" alt="" className="wiggle size-14 drop-shadow-md" />
         <div className="mr-auto">
-          <h1 className="text-2xl font-extrabold leading-tight">{t('app.name')}</h1>
-          <p className="text-sm text-muted">{t('app.tagline')}</p>
+          <h1 className="display wordmark text-4xl font-black leading-tight">{t('app.name')}</h1>
+          <p className="text-sm font-medium text-muted">{t('app.tagline')}</p>
         </div>
-        <button type="button" className="btn" data-testid="classes-btn" onClick={() => setClassesOpen(true)}>
+        <button type="button" className="btn" data-tour="classes" data-testid="classes-btn" onClick={() => setClassesOpen(true)}>
           <Users size={18} aria-hidden /> {t('classes.open')}
         </button>
         <AccountButton />
-        <button type="button" className="btn btn-icon" aria-label={t('settings.title')} title={t('settings.title')} onClick={() => setSettingsOpen(true)}>
+        <button type="button" className="btn btn-icon" data-tour="settings" aria-label={t('settings.title')} onClick={() => setSettingsOpen(true)}>
           <Settings size={20} aria-hidden />
         </button>
       </header>
@@ -191,7 +205,7 @@ export function HomePage() {
       {corrupted > 0 && <p role="alert" className="mb-4 rounded-xl border border-danger p-3 text-danger">{t('home.corrupted', { n: corrupted })}</p>}
 
       <div className="mb-6 flex flex-wrap items-center gap-3">
-        <button type="button" data-testid="new-screen" className="btn btn-primary min-h-12 px-5 text-lg" onClick={() => navigate({ name: 'edit', id: createScreen() })}>
+        <button type="button" data-tour="new-screen" data-testid="new-screen" className="btn btn-primary min-h-12 px-5 text-lg" onClick={() => navigate({ name: 'edit', id: createScreen() })}>
           <Plus aria-hidden /> {t('home.new')}
         </button>
         <div className="relative min-w-60 flex-1 sm:max-w-md">
@@ -220,7 +234,7 @@ export function HomePage() {
 
       {recent.length > 0 && !q && (
         <section className="mb-8" aria-label={t('home.recent')}>
-          <h2 className="mb-3 text-xl font-bold">{t('home.recent')}</h2>
+          <h2 className="mb-3 display text-2xl font-extrabold">{t('home.recent')}</h2>
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]" data-testid="recent">
             {recent.map((s) => (
               <button key={s.id} type="button" className="card p-2 text-left hover:bg-surface2" onClick={() => navigate({ name: 'edit', id: s.id })}>
@@ -234,7 +248,7 @@ export function HomePage() {
 
       {deckList.length > 0 && (
         <section aria-label={t('home.decks')} className="mb-2">
-          <h2 className="mb-1 text-xl font-bold">{t('home.decks')}</h2>
+          <h2 className="mb-1 display text-2xl font-extrabold">{t('home.decks')}</h2>
           <p className="mb-3 text-sm text-muted">{t('home.decks.hint')}</p>
           {deckList.map((d) => (
             <DeckSection key={d.id} deck={d} screens={screensInDeck(screens, d.id).filter(matches)} />
@@ -243,7 +257,7 @@ export function HomePage() {
       )}
 
       <section aria-label={t('home.title')} className="mb-10">
-        <h2 className="mb-3 text-xl font-bold">{t('home.title')}</h2>
+        <h2 className="display mb-3 text-2xl font-extrabold">{t('home.title')}</h2>
         {total === 0 ? (
           <p className="card p-6 text-muted">{t('home.empty')}</p>
         ) : loose.length === 0 && q ? (
@@ -259,9 +273,9 @@ export function HomePage() {
 
       <CloudLibrary />
 
-      <section aria-label={t('home.templates')} className="mb-10">
-        <h2 className="mb-1 flex items-center gap-2 text-xl font-bold">
-          <LayoutTemplate aria-hidden /> {t('home.templates')}
+      <section aria-label={t('home.templates')} className="mb-10" data-tour="templates">
+        <h2 className="display mb-1 flex items-center gap-2 text-2xl font-extrabold">
+          <LayoutTemplate aria-hidden className="text-primary" /> {t('home.templates')}
         </h2>
         <p className="mb-3 text-sm text-muted">{t('home.templates.hint')}</p>
         <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
@@ -295,16 +309,19 @@ export function HomePage() {
         </div>
       </section>
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Tour id="home" steps={HOME_TOUR} />
       <ClassesDialog open={classesOpen} onClose={() => setClassesOpen(false)} />
     </div>
   );
 }
 
+const ACCENTS = ['var(--coral)', 'var(--sky)', 'var(--mint)', 'var(--sun)', 'var(--lilac)'];
+
 function TemplateCard({ id, onUse, createFromTemplate }: { id: string; onUse: (screenId: string) => void; createFromTemplate: (id: string) => string | null }) {
   const tpl = TEMPLATES.find((x) => x.id === id)!;
   const widgets = useMemo(() => tpl.build(), [tpl]);
   return (
-    <article className="card flex flex-col p-2" data-testid={`template-${id}`}>
+    <article className="card lift flex flex-col p-2 hover:shadow-xl" data-testid={`template-${id}`} style={{ borderTop: `6px solid ${ACCENTS[TEMPLATES.findIndex((x) => x.id === id) % ACCENTS.length]}` }}>
       <ScreenThumb widgets={widgets} aspect={tpl.aspect} background={tpl.background} />
       <div className="flex flex-1 flex-col gap-1 p-2">
         <h3 className="font-bold">{tpl.name}</h3>

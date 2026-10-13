@@ -1,4 +1,5 @@
-import { expect, test, type Browser, type Page } from '@playwright/test';
+import { type Browser, type Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { addWidget, newScreen, waitSaved } from './helpers';
 
 // Zostava je prepojená s lokálnou náhradou Supabase (tests/e2e/fake-supabase.mjs) – testuje sa klientska logika
@@ -9,6 +10,7 @@ const PW = 'heslo12345';
 
 async function device(browser: Browser): Promise<Page> {
   const ctx = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx.addInitScript(() => localStorage.setItem('ts.notour', '1'));
   const page = await ctx.newPage();
   await page.goto('/');
   await expect(page.getByTestId('new-screen')).toBeVisible();

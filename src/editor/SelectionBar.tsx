@@ -1,4 +1,4 @@
-import { AlignCenterHorizontal, AlignCenterVertical, AlignEndHorizontal, AlignEndVertical, AlignHorizontalSpaceAround, AlignStartHorizontal, AlignStartVertical, AlignVerticalSpaceAround, ArrowDownToLine, ArrowUpToLine, ChevronDown, ChevronUp, Copy, CopyPlus, Lock, Trash2, Unlock, type LucideIcon } from 'lucide-react';
+import { Settings2, AlignCenterHorizontal, AlignCenterVertical, AlignEndHorizontal, AlignEndVertical, AlignHorizontalSpaceAround, AlignStartHorizontal, AlignStartVertical, AlignVerticalSpaceAround, ArrowDownToLine, ArrowUpToLine, ChevronDown, ChevronUp, Copy, CopyPlus, Lock, Trash2, Unlock, type LucideIcon } from 'lucide-react';
 import { t, type TKey } from '@/i18n';
 import { useApp, screensInDeck } from '@/store/useApp';
 import type { Align } from '@/lib/screenOps';
@@ -25,6 +25,7 @@ export function SelectionBar({ screenId }: { screenId: string }) {
   const screens = useApp((s) => s.screens);
   const selection = useApp((s) => s.selection);
   const a = useApp.getState();
+  const inspectorOpen = useApp((s) => s.inspectorOpen);
   if (!screen || selection.length === 0) return <div className="h-12" aria-hidden />;
   const sel = screen.widgets.filter((w) => selection.includes(w.id));
   const allLocked = sel.length > 0 && sel.every((w) => w.locked);
@@ -32,6 +33,10 @@ export function SelectionBar({ screenId }: { screenId: string }) {
   void screensInDeck;
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1 px-2" role="toolbar" aria-label={t('sel.align')}>
+      <button type="button" className="btn btn-primary min-h-10" data-testid="widget-settings-btn" aria-pressed={inspectorOpen} data-tip={t('sel.settingsTip')} onClick={() => a.setInspectorOpen(!inspectorOpen)}>
+        <Settings2 size={18} aria-hidden /> {t('sel.settings')}
+      </button>
+      <span className="mx-1 h-6 w-px bg-line" aria-hidden />
       {ALIGN.map((x) => (
         <Btn key={x.how} icon={x.icon} label={t(x.label)} onClick={() => a.align(screenId, selection, x.how)} />
       ))}

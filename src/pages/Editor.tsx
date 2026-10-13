@@ -14,6 +14,16 @@ import { Filmstrip } from '@/editor/Filmstrip';
 import { ExportDialog } from '@/editor/ExportDialog';
 import { useEditorShortcuts } from '@/editor/useShortcuts';
 import { CloudScreenButton } from '@/backend/CloudPanel';
+import { Tour, type TourStep } from '@/components/Tour';
+
+const EDITOR_TOUR: TourStep[] = [
+  { target: ['[data-tour=palette]', '[data-tour=palette-toggle]'], title: 'tour.editor.palette.title', text: 'tour.editor.palette.text' },
+  { target: ['[data-tour=stage]'], title: 'tour.editor.stage.title', text: 'tour.editor.stage.text' },
+  { target: ['[data-tour=inspector-toggle]'], title: 'tour.editor.settings.title', text: 'tour.editor.settings.text' },
+  { target: ['[data-tour=undo]'], title: 'tour.editor.undo.title', text: 'tour.editor.undo.text' },
+  { target: ['[data-tour=screens]'], title: 'tour.editor.screens.title', text: 'tour.editor.screens.text' },
+  { target: ['[data-tour=present]'], title: 'tour.editor.present.title', text: 'tour.editor.present.text' },
+];
 
 function SaveIndicator() {
   const status = useApp((s) => s.saveStatus);
@@ -42,8 +52,9 @@ export function Editor({ id }: { id: string }) {
   const markOpened = useApp((s) => s.markOpened);
   const select = useApp((s) => s.select);
   const fs = useFullscreen();
-  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth >= 1100);
-  const [rightOpen, setRightOpen] = useState(() => window.innerWidth >= 1280);
+  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth >= 1024);
+  const rightOpen = useApp((s) => s.inspectorOpen);
+  const setRightOpen = useApp((s) => s.setInspectorOpen);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
   const exists = !!screen;
@@ -75,7 +86,7 @@ export function Editor({ id }: { id: string }) {
         <button type="button" className="btn btn-icon" aria-label={t('editor.home')} title={t('editor.home')} onClick={() => navigate({ name: 'home' })}>
           <Home size={20} aria-hidden />
         </button>
-        <button type="button" className="btn btn-icon lg:hidden" aria-label={t('editor.palette')} aria-pressed={leftOpen} onClick={() => setLeftOpen(!leftOpen)}>
+        <button type="button" className="btn btn-icon" data-tour="palette-toggle" aria-label={t('editor.palette')} aria-pressed={leftOpen} onClick={() => setLeftOpen(!leftOpen)}>
           <PanelLeft size={20} aria-hidden />
         </button>
         <input
@@ -88,7 +99,7 @@ export function Editor({ id }: { id: string }) {
         />
         <SaveIndicator />
         <div className="ml-auto flex flex-wrap items-center gap-1">
-          <button type="button" className="btn btn-icon" aria-label={t('common.undo')} title={`${t('common.undo')} (Ctrl+Z)`} data-testid="undo" disabled={!history?.past.length} onClick={() => undo(id)}>
+          <button type="button" className="btn btn-icon" aria-label={t('common.undo')} title={`${t('common.undo')} (Ctrl+Z)`} data-tour="undo" data-testid="undo" disabled={!history?.past.length} onClick={() => undo(id)}>
             <Undo2 size={20} aria-hidden />
           </button>
           <button type="button" className="btn btn-icon" aria-label={t('common.redo')} title={`${t('common.redo')} (Ctrl+Y)`} data-testid="redo" disabled={!history?.future.length} onClick={() => redo(id)}>
@@ -106,10 +117,10 @@ export function Editor({ id }: { id: string }) {
           <button type="button" className="btn btn-icon" aria-label={t('settings.title')} title={t('settings.title')} onClick={() => setSettingsOpen(true)}>
             <Settings size={20} aria-hidden />
           </button>
-          <button type="button" className="btn btn-icon xl:hidden" aria-label={t('editor.inspector')} aria-pressed={rightOpen} onClick={() => setRightOpen(!rightOpen)}>
+          <button type="button" className="btn btn-icon" data-tour="inspector-toggle" data-testid="inspector-toggle" aria-label={t('editor.inspector')} data-tip={t('editor.inspectorTip')} aria-pressed={rightOpen} onClick={() => setRightOpen(!rightOpen)}>
             <PanelRight size={20} aria-hidden />
           </button>
-          <button type="button" className="btn btn-primary" data-testid="present-btn" onClick={() => navigate({ name: 'present', id })}>
+          <button type="button" className="btn btn-primary" data-tour="present" data-testid="present-btn" onClick={() => navigate({ name: 'present', id })}>
             <Play size={18} aria-hidden /> {t('editor.present')}
           </button>
         </div>
@@ -119,11 +130,11 @@ export function Editor({ id }: { id: string }) {
       </div>
       <div className="relative flex min-h-0 flex-1">
         {leftOpen && (
-          <aside className="absolute inset-y-0 left-0 z-30 w-64 overflow-auto border-r border-line bg-surface shadow-xl lg:static lg:shadow-none">
-            <Palette screenId={id} onAdded={() => window.innerWidth < 1100 && setLeftOpen(false)} />
+          <aside data-tour="palette" className="absolute inset-y-0 left-0 z-30 w-64 overflow-auto border-r border-line bg-surface shadow-xl lg:static lg:shadow-none">
+            <Palette screenId={id} onAdded={() => window.innerWidth < 1024 && setLeftOpen(false)} />
           </aside>
         )}
-        <main className="min-w-0 flex-1" aria-label={t('editor.canvasLabel')}>
+        <main data-tour="stage" className="min-w-0 flex-1" aria-label={t('editor.canvasLabel')}>
           <Stage screenId={id} mode="edit" />
         </main>
         {rightOpen && (
@@ -135,6 +146,7 @@ export function Editor({ id }: { id: string }) {
         )}
       </div>
       <Filmstrip screenId={id} />
+      <Tour id="editor" steps={EDITOR_TOUR} />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ExportDialog screenId={id} open={exportOpen} onClose={() => setExportOpen(false)} />
     </div>

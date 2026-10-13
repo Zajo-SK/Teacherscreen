@@ -22,8 +22,15 @@ createRoot(document.getElementById('root')!).render(
 if (import.meta.env.PROD) {
   void import('virtual:pwa-register').then(({ registerSW }) => {
     const update = registerSW({
+      // Nová verzia sa kontroluje pri štarte, pri návrate na kartu a každú hodinu; oznámenie ostane, kým ho učiteľ nepotvrdí.
+      onRegisteredSW(_url, reg) {
+        if (!reg) return;
+        const check = () => void reg.update().catch(() => undefined);
+        setInterval(check, 60 * 60 * 1000);
+        document.addEventListener('visibilitychange', () => document.visibilityState === 'visible' && check());
+      },
       onNeedRefresh() {
-        useApp.getState().toast(t('settings.updateAvailable'), { action: { label: t('settings.update'), run: () => void update(true) }, ms: 15000 });
+        useApp.getState().toast(t('settings.updateAvailable'), { action: { label: t('settings.update'), run: () => void update(true) }, ms: 24 * 3600 * 1000 });
       },
       onOfflineReady() {
         useApp.getState().toast(t('settings.offlineReady'), { tone: 'success' });

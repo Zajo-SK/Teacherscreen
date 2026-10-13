@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Toasts } from '@/components/ui';
+import { TooltipLayer } from '@/components/Tooltips';
 import { t } from '@/i18n';
 import { useRoute } from '@/lib/router';
 import { useApp } from '@/store/useApp';
@@ -73,6 +74,7 @@ export function App() {
         {route.name === 'shared' && <SharedPage token={route.token} />}
       </div>
       <Toasts />
+      <TooltipLayer />
     </>
   );
 }

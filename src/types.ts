@@ -50,7 +50,9 @@ export interface WidgetInstance<C = unknown> {
 export type Background =
   | { kind: 'color'; value: string }
   | { kind: 'gradient'; value: string }
-  | { kind: 'image'; value: string };
+  | { kind: 'image'; value: string }
+  /** Predvoľba z knižnice pozadí (ID z lib/backgrounds.ts). */
+  | { kind: 'preset'; value: string };
 
 export interface Screen {
   id: string;
@@ -99,4 +101,4 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = { theme: 'system', sound: true, animations: true, snapToGrid: true, syncClasses: false };
 
-export const DEFAULT_BACKGROUND: Background = { kind: 'gradient', value: 'linear-gradient(135deg,#dbeafe 0%,#e0e7ff 100%)' };
+export const DEFAULT_BACKGROUND: Background = { kind: 'preset', value: 'mesh-ocean' };

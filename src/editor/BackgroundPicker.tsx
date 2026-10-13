@@ -4,8 +4,9 @@ import { t } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import type { Background } from '@/types';
 import { loadImageFile } from '@/lib/image';
+import { BG_CATEGORIES, BG_PRESETS, bgPresetUrl, type BgCategory } from '@/lib/backgrounds';
 
-const COLORS = ['#ffffff', '#f1f5f9', '#fef3c7', '#dcfce7', '#dbeafe', '#fce7f3', '#e2e8f0', '#1e293b', '#0f172a', '#14532d', '#1e3a8a', '#7c2d12'];
+const COLORS = ['#ffffff', '#fbf8f3', '#fff1b8', '#d7f5e6', '#d6ecff', '#ffe0ec', '#e9e4ff', '#2a2540', '#14121f', '#14532d', '#1e3a8a', '#7c2d12'];
 const GRADIENTS = [
   'linear-gradient(135deg,#dbeafe 0%,#e0e7ff 100%)',
   'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)',
@@ -17,29 +18,63 @@ const GRADIENTS = [
   'linear-gradient(135deg,#7c2d12 0%,#be123c 100%)',
 ];
 
+const CATEGORY_LABEL: Record<BgCategory, string> = {
+  mesh: t('bg.cat.mesh'),
+  waves: t('bg.cat.waves'),
+  shapes: t('bg.cat.shapes'),
+  landscape: t('bg.cat.landscape'),
+  patterns: t('bg.cat.patterns'),
+  school: t('bg.cat.school'),
+};
+
 export function BackgroundPicker({ screenId, background }: { screenId: string; background: Background }) {
   const setBackground = useApp((s) => s.setBackground);
   const toast = useApp((s) => s.toast);
   const file = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
+  const [cat, setCat] = useState<BgCategory>(() => (background.kind === 'preset' ? (BG_PRESETS.find((p) => p.id === background.value)?.category ?? 'mesh') : 'mesh'));
   const isSel = (b: Background) => b.kind === background.kind && b.value === background.value;
   const swatch = (b: Background, label: string) => (
     <button
       key={b.value}
       type="button"
       aria-label={label}
+      data-tip={label}
       aria-pressed={isSel(b)}
       onClick={() => setBackground(screenId, b)}
-      className="size-10 rounded-lg border-2 border-line aria-pressed:ring-4 aria-pressed:ring-primary"
+      className="size-10 rounded-xl border-2 border-line transition-transform hover:scale-110 aria-pressed:ring-4 aria-pressed:ring-primary"
       style={{ background: b.value }}
     />
   );
   return (
-    <div>
+    <div data-testid="bg-picker">
+      <span className="label">{t('bg.library')}</span>
+      <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label={t('bg.library')}>
+        {BG_CATEGORIES.map((c) => (
+          <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className="rounded-full border border-line px-3 py-1 text-xs font-semibold aria-selected:border-transparent aria-selected:bg-primary aria-selected:text-primary-fg" onClick={() => setCat(c.id)}>
+            {CATEGORY_LABEL[c.id]}
+          </button>
+        ))}
+      </div>
+      <div className="mb-4 grid grid-cols-3 gap-2" data-testid="bg-presets">
+        {BG_PRESETS.filter((p) => p.category === cat).map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            data-testid={`bg-${p.id}`}
+            aria-label={p.name}
+            data-tip={p.name}
+            aria-pressed={background.kind === 'preset' && background.value === p.id}
+            onClick={() => setBackground(screenId, { kind: 'preset', value: p.id })}
+            className="aspect-video rounded-xl border-2 border-line transition-transform hover:scale-105 aria-pressed:ring-4 aria-pressed:ring-primary"
+            style={{ background: `center / cover no-repeat ${bgPresetUrl(p.id) ?? ''}` }}
+          />
+        ))}
+      </div>
       <span className="label">{t('bg.colors')}</span>
       <div className="mb-3 flex flex-wrap gap-2">
         {COLORS.map((c) => swatch({ kind: 'color', value: c }, c))}
-        <input type="color" aria-label={t('bg.custom')} className="size-10 cursor-pointer rounded-lg border-2 border-line bg-transparent p-0" value={background.kind === 'color' && /^#[0-9a-f]{6}$/i.test(background.value) ? background.value : '#ffffff'} onChange={(e) => setBackground(screenId, { kind: 'color', value: e.target.value })} />
+        <input type="color" aria-label={t('bg.custom')} data-tip={t('bg.custom')} className="size-10 cursor-pointer rounded-xl border-2 border-line bg-transparent p-0" value={background.kind === 'color' && /^#[0-9a-f]{6}$/i.test(background.value) ? background.value : '#ffffff'} onChange={(e) => setBackground(screenId, { kind: 'color', value: e.target.value })} />
       </div>
       <span className="label">{t('bg.gradients')}</span>
       <div className="mb-3 flex flex-wrap gap-2">{GRADIENTS.map((g, i) => swatch({ kind: 'gradient', value: g }, `${t('bg.gradients')} ${i + 1}`))}</div>
@@ -49,7 +84,7 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
           <Upload size={18} aria-hidden /> {t('bg.upload')}
         </button>
         {background.kind === 'image' && (
-          <button type="button" className="btn btn-danger" onClick={() => setBackground(screenId, { kind: 'gradient', value: GRADIENTS[0]! })}>
+          <button type="button" className="btn btn-danger" onClick={() => setBackground(screenId, { kind: 'preset', value: 'mesh-ocean' })}>
             <Trash2 size={18} aria-hidden /> {t('bg.removeImage')}
           </button>
         )}

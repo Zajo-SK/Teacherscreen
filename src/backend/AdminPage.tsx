@@ -7,7 +7,7 @@ import { ASPECTS } from '@/editor/aspects';
 import { t, type TKey } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { useApp } from '@/store/useApp';
-import { api, type AdminUser, type AuditRow, type RemoteClassRow, type Role } from './api';
+import { api, BackendError, type AdminUser, type AuditRow, type RemoteClassRow, type Role } from './api';
 import { emailToNick } from './nick';
 import { describeError, useCloud } from './useCloud';
 import type { AspectId, ThemeMode } from '@/types';
@@ -192,6 +192,7 @@ export function AdminPage() {
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const [defaults, setDefaults] = useState<{ aspect?: AspectId; theme?: ThemeMode }>({});
   const [err, setErr] = useState<string | null>(null);
+  const [detail, setDetail] = useState<string>('');
   const [reset, setReset] = useState<AdminUser | null>(null);
   const [del, setDel] = useState<AdminUser | null>(null);
   const [classesOf, setClassesOf] = useState<AdminUser | null>(null);
@@ -204,8 +205,11 @@ export function AdminPage() {
       setAudit(a);
       setDefaults(d as typeof defaults);
       setErr(null);
+      setDetail('');
     } catch (e) {
-      setErr(describeError(e));
+      const msg = e instanceof BackendError ? e.message : String(e);
+      setDetail(msg);
+      setErr(/admin_user_overview|admin_audit|schema cache|PGRST20\d|42883|42P01/i.test(msg) ? 'admin.migrationMissing' : describeError(e));
     }
   }, []);
   useEffect(() => {
@@ -218,11 +222,21 @@ export function AdminPage() {
         <ArrowLeft size={18} aria-hidden /> {t('editor.toHome')}
       </button>
       <h1 className="mb-4 text-2xl font-extrabold">{t('cloud.adminTitle')}</h1>
-      {status !== 'signedIn' || !isAdmin ? (
-        <p className="card p-4" role="alert">{t('cloud.adminOnly')}</p>
+      {status === 'loading' ? (
+        <p className="card p-4">{t('common.loading')}</p>
+      ) : status !== 'signedIn' || !isAdmin ? (
+        <div className="card p-4" role="alert" data-testid="admin-denied">
+          <p>{status !== 'signedIn' ? t('admin.needSignIn') : t('cloud.adminOnly')}</p>
+          {status === 'signedIn' && <p className="mt-2 text-sm text-muted">{t('admin.howToBecome', { nick: nickOf({ display_name: profile?.display_name ?? '', email: profile?.email ?? '' }) || '…' })}</p>}
+        </div>
       ) : (
         <>
-          {err && <p role="alert" className="mb-3 text-danger">{t(err as TKey)}</p>}
+          {err && (
+            <div role="alert" className="mb-3 rounded-xl border border-danger p-3 text-danger">
+              <p>{t(err as TKey)}</p>
+              {detail && <p className="mt-1 break-all font-mono text-xs">{detail}</p>}
+            </div>
+          )}
           <section className="card mb-6 p-4" aria-label={t('cloud.users')}>
             <h2 className="mb-1 text-lg font-bold">{t('cloud.users')} ({users.length})</h2>
             <p className="mb-3 text-sm text-muted">{t('admin.privacyNote')}</p>

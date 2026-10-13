@@ -50,6 +50,9 @@ interface AppState {
   clipboard: WidgetInstance[];
   history: Record<string, History>;
   toasts: Toast[];
+  /** Pravý panel s nastaveniami widgetu je otvorený. */
+  inspectorOpen: boolean;
+  setInspectorOpen: (open: boolean) => void;
 
   init: (storage?: StorageAdapter) => Promise<void>;
   flush: () => Promise<void>;
@@ -166,6 +169,8 @@ export const useApp = create<AppState>()((set, get) => {
     clipboard: [],
     history: {},
     toasts: [],
+    inspectorOpen: typeof window !== 'undefined' && window.innerWidth >= 1280,
+    setInspectorOpen: (inspectorOpen) => set({ inspectorOpen }),
 
     async init(storage) {
       const adapter = storage ?? (await openStorage());

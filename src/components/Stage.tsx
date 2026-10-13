@@ -1,10 +1,11 @@
 import { Component, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ErrorInfo, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
-import { GripHorizontal, Lock } from 'lucide-react';
+import { GripHorizontal, Lock, Settings2 } from 'lucide-react';
 import { CANVAS_SIZES, type Background, type WidgetInstance } from '@/types';
 import { useApp } from '@/store/useApp';
 import { t } from '@/i18n';
 import { clamp, fitRect, rectsIntersect, snap, type Rect } from '@/lib/geometry';
 import { contrastText } from '@/lib/color';
+import { bgPresetUrl } from '@/lib/backgrounds';
 import { sortByZ } from '@/lib/screenOps';
 import { getWidgetDefinition } from '@/widgets/registry';
 import { ScreenRuntime } from '@/widgets/ScreenRuntime';
@@ -16,6 +17,8 @@ export function backgroundStyle(bg: Background): CSSProperties {
       return { background: bg.value };
     case 'image':
       return { background: `center / cover no-repeat url("${bg.value}")` };
+    case 'preset':
+      return { background: `center / cover no-repeat ${bgPresetUrl(bg.value) ?? 'var(--bg)'}` };
   }
 }
 
@@ -117,6 +120,19 @@ const WidgetView = memo(function WidgetView({ widget, rect, mode, selected, scal
         <div style={{ position: 'absolute', top: px(6), right: px(6), width: px(30), height: px(30), display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'rgba(15,23,42,.75)', color: '#fff' }} title={t('sel.locked')} role="img" aria-label={t('sel.locked')}>
           <Lock size={px(16)} aria-hidden />
         </div>
+      )}
+      {edit && selected && (
+        <button
+          type="button"
+          data-no-drag
+          data-testid="widget-gear"
+          aria-label={t('sel.settings')}
+          data-tip={t('sel.settingsTip')}
+          onClick={() => useApp.getState().setInspectorOpen(true)}
+          style={{ position: 'absolute', top: px(6), left: px(6), width: px(34), height: px(34), display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'var(--primary)', color: 'var(--primary-fg)', border: 'none', cursor: 'pointer', zIndex: 6, padding: 0 }}
+        >
+          <Settings2 size={px(18)} aria-hidden />
+        </button>
       )}
       {edit && !widget.locked && (
         <div

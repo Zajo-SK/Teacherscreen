@@ -67,7 +67,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
   );
 }
 
-const GROUP_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#0891b2', '#be185d', '#4d7c0f'];
+const GROUP_COLORS = ['#6d5dfc', '#ff4d6d', '#12b886', '#f59f00', '#9c36b5', '#1098ad', '#e64980', '#5c940d'];
 
 function Settings({ config, update }: SettingsProps<Config>) {
   const rt = useRuntime();

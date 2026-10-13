@@ -36,7 +36,7 @@ function PollWidget({ config, update }: WidgetProps<Config>) {
               <Minus size={26} aria-hidden />
             </button>
             <div style={{ flex: 1, position: 'relative', minHeight: 84, borderRadius: 14, background: 'color-mix(in srgb, currentColor 8%, transparent)', overflow: 'hidden' }}>
-              <div style={{ position: 'absolute', inset: 0, width: `${(o.votes / max) * 100}%`, background: '#2563eb', opacity: 0.35, transition: 'width .3s' }} />
+              <div style={{ position: 'absolute', inset: 0, width: `${(o.votes / max) * 100}%`, background: '#6d5dfc', opacity: 0.35, transition: 'width .3s' }} />
               <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '100%', padding: '0 20px', fontSize: 'min(4.6cqw, 8cqh)', fontWeight: 700, gap: 16 }}>
                 <span style={{ overflowWrap: 'anywhere' }}>{o.text}</span>
                 <span style={{ whiteSpace: 'nowrap' }} data-testid={`votes-${o.id}`}>

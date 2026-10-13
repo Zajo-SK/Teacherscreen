@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 import { addWidget, newScreen, openApp, widget } from './helpers';
 
 test.describe('9: tablet a veľká obrazovka', () => {
@@ -24,8 +24,8 @@ test.describe('9: tablet a veľká obrazovka', () => {
     const b = (await w.boundingBox())!;
     const before = await w.evaluate((e) => (e as HTMLElement).style.left);
     const cdp = await page.context().newCDPSession(page);
-    const x = b.x + 20;
-    const y = b.y + 20;
+    const x = b.x + b.width * 0.8;
+    const y = b.y + 14;
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
     for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + i * 15, y: y + i * 8 }] });
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
@@ -43,6 +43,7 @@ test.describe('9: tablet a veľká obrazovka', () => {
     await openApp(page);
     await page.getByTestId('template-independent-work').getByRole('button', { name: /Použiť/ }).click();
     await page.getByTestId('present-btn').click();
+    await expect(page.getByTestId('present-root')).toBeVisible();
     const sb = (await page.getByTestId('stage').boundingBox())!;
     expect(sb.width).toBeGreaterThan(3700);
     expect(sb.height).toBeGreaterThan(2000);

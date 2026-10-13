@@ -8,7 +8,7 @@ const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PAT
 const page = await browser.newPage();
 async function render(name, size, padding = 0) {
   const inner = size - padding * 2;
-  const bg = padding ? '#2563eb' : 'transparent';
+  const bg = padding ? '#7c6cff' : 'transparent';
   await page.setViewportSize({ width: size, height: size });
   await page.setContent(
     `<body style="margin:0;background:${bg};display:grid;place-items:center;width:${size}px;height:${size}px">` +

@@ -5,6 +5,7 @@ import { Segmented, Toggle } from './forms';
 import { t } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import { usePwaInstall } from '@/lib/pwa';
+import { restartTours } from './Tour';
 import type { ThemeMode } from '@/types';
 
 export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -31,6 +32,9 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
       <Toggle label={t('settings.sound')} checked={settings.sound} onChange={(sound) => update({ sound })} />
       <Toggle label={t('settings.animations')} checked={settings.animations} onChange={(animations) => update({ animations })} />
       <Toggle label={t('settings.snap')} checked={settings.snapToGrid} onChange={(snapToGrid) => update({ snapToGrid })} />
+      <button type="button" className="btn mb-3 mr-2" data-testid="restart-tour" onClick={() => { onClose(); restartTours(); }}>
+        {t('tour.restart')}
+      </button>
       {canInstall && (
         <button type="button" className="btn mb-3" onClick={() => void install()}>
           <Download size={18} aria-hidden /> {t('settings.install')}

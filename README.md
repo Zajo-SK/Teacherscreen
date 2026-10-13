@@ -54,6 +54,13 @@ tests/unit, tests/e2e      automatizované testy
 * **Import/export.** JSON súbor s vlastnou validáciou (zod schémy widgetov): neznáme widgety sa vynechajú, súradnice sa opravia, pozadie povolí len bezpečné hodnoty (žiadne `url()`, SVG ani skripty), súbory z novšej verzie sa odmietnu. Export obrazovky štandardne **neobsahuje zoznamy žiakov**.
 * **Súkromie.** Mená žiakov ostávajú v zariadení: pri nahrávaní do cloudu sa zo všetkých widgetov odstraňujú. Zoznam mien sa v widgetoch na obrazovke nezobrazuje (iba aktuálne vybraný/skupiny).
 
+## Vzhľad a používanie
+
+* **Knižnica pozadí:** 36 originálnych ilustrácií (prelievanie, vlny, tvary, krajina, vzory, školské) vo výbere pozadia obrazovky (panel vpravo, keď nie je vybraný žiadny widget). Generujú sa v kóde ako SVG (`src/lib/backgrounds.ts`) – bez licenčných obmedzení, bez sťahovania z internetu, fungujú offline a obrazovka nesie len ID.
+* **Nastavenia widgetu:** vyberte widget a kliknite na **Nastavenia** v lište nad plochou alebo na modré koliesko priamo na widgete. Bez vybraného widgetu panel nastavuje pozadie a pomer strán.
+* **Popisky ikon:** pri nabehnutí myšou, pri fokuse klávesnicou aj pri dlhom stlačení prstom sa zobrazí, čo ikona robí.
+* **Úvodná prehliadka:** raz pre každého používateľa na domovskej stránke a v editore; znova ju spustíte v Nastaveniach.
+
 ## Klávesové skratky (editor)
 
 `Ctrl+Z` späť · `Ctrl+Y`/`Ctrl+Shift+Z` znova · `Ctrl+C/X/V` kopírovať/vystrihnúť/vložiť · `Ctrl+D` duplikovať · `Ctrl+A` vybrať všetko · `Ctrl+L` uzamknúť · `Delete` odstrániť (s tlačidlom „Vrátiť“) · šípky posun (Shift = 10) · `[` `]` vrstvy · `P`/`F5` prezentácia · `F` celá obrazovka.

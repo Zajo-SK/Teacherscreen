@@ -13,6 +13,7 @@ import {
 import { getWidgetDefinition, isWidgetType, sanitizeConfig } from '@/widgets/registry';
 import { fitRect } from './geometry';
 import { isSafeImageDataUrl } from './image';
+import { isBgPresetId } from './backgrounds';
 import { uid } from './id';
 
 export class ImportError extends Error {
@@ -40,6 +41,7 @@ export function sanitizeBackground(raw: unknown): Background {
   if (r.kind === 'color' && color.safeParse(r.value).success) return { kind: 'color', value: r.value as string };
   if (r.kind === 'gradient' && gradient.safeParse(r.value).success) return { kind: 'gradient', value: r.value as string };
   if (r.kind === 'image' && isSafeImageDataUrl(r.value)) return { kind: 'image', value: r.value };
+  if (r.kind === 'preset' && isBgPresetId(r.value)) return { kind: 'preset', value: r.value };
   return DEFAULT_BACKGROUND;
 }
 

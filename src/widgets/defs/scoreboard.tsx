@@ -5,7 +5,7 @@ import { NumberField, Segmented, TextField } from '@/components/forms';
 import { int, str } from '../fields';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
-const TEAM_COLORS = ['#2563eb', '#dc2626', '#16a34a', '#d97706'];
+const TEAM_COLORS = ['#6d5dfc', '#ff4d6d', '#12b886', '#f59f00'];
 const teamSchema = (i: number) =>
   z.object({ name: str(`Tím ${i + 1}`, 30), score: int(0, -9999, 99999) }).catch({ name: `Tím ${i + 1}`, score: 0 });
 

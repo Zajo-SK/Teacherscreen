@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { buildExport, ImportError, parseImport, sanitizeBackground, sanitizeScreen, stripStudentData } from '@/lib/schema';
 import { buildScreen, screenFromTemplate, TEMPLATES } from '@/templates';
 import { createWidget, widgetDefinitions } from '@/widgets/registry';
-import { SCHEMA_VERSION } from '@/types';
+import { DEFAULT_BACKGROUND, SCHEMA_VERSION } from '@/types';
 import { isSafeImageDataUrl } from '@/lib/image';
 import { normalizeQrInput, buildQr } from '@/lib/qr';
 
@@ -114,7 +114,7 @@ describe('import a validácia', () => {
     expect((b!.config as { showSeconds: boolean }).showSeconds).toBe(false);
   });
   it('pozadie nepustí url(), skripty ani cudzie dátové URL', () => {
-    expect(sanitizeBackground({ kind: 'gradient', value: 'linear-gradient(red, url(https://evil.example/x.png))' }).kind).toBe('gradient');
+    expect(sanitizeBackground({ kind: 'gradient', value: 'linear-gradient(red, url(https://evil.example/x.png))' })).toEqual(DEFAULT_BACKGROUND);
     expect(sanitizeBackground({ kind: 'gradient', value: 'linear-gradient(red, url(https://evil.example/x.png))' }).value).not.toContain('evil');
     expect(sanitizeBackground({ kind: 'color', value: 'red; background:url(x)' }).kind).not.toBe('color');
     expect(sanitizeBackground({ kind: 'image', value: 'https://evil.example/a.png' }).kind).not.toBe('image');

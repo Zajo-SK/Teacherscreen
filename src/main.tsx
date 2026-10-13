@@ -4,8 +4,10 @@ import './index.css';
 import { App } from './App';
 import { useApp } from './store/useApp';
 import { t } from './i18n';
+import { useCloud } from './backend/useCloud';
 
 void useApp.getState().init();
+void useCloud.getState().init(); // obnoví prihlásenie hneď pri štarte (aj keď sa stránka otvorí priamo na #/admin)
 
 // Požiadavka na trvalé úložisko (prehliadač tak dáta samovoľne nevymaže pri nedostatku miesta).
 void navigator.storage?.persist?.().catch(() => undefined);

@@ -380,6 +380,11 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
             {marquee && <div style={{ position: 'absolute', left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h, border: `${2 / scale}px dashed var(--primary)`, background: 'rgba(37,99,235,.12)', zIndex: 10001, pointerEvents: 'none' }} />}
           </div>
         </ScreenRuntime>
+        {screen.background.kind === 'image' && screen.background.credit && (
+          <div data-testid="bg-credit" style={{ position: 'absolute', right: 6, bottom: 4, maxWidth: '70%', zIndex: 50, pointerEvents: 'none', fontSize: 11, color: '#fff', background: 'rgba(0,0,0,.38)', padding: '1px 8px', borderRadius: 999, textShadow: '0 1px 2px rgba(0,0,0,.6)' }}>
+            {t('bg.photoBy')}: {screen.background.credit}
+          </div>
+        )}
       </div>
     </div>
   );

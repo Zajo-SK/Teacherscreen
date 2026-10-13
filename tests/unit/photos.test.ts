@@ -35,9 +35,13 @@ describe('fotky z Wikimedia Commons', () => {
     expect(r.photos.map((p) => p.title)).toEqual(['File:Dobra.jpg']);
     expect(r.photos[0]).toMatchObject({ author: 'Jana Nováková', license: 'CC BY-SA 4.0' });
     expect(r.next).toBe(40);
+    expect(r.stats).toMatchObject({ total: 8, license: 2, size: 1, ratio: 2, mime: 1, url: 1 });
   });
   it('prázdna odpoveď nevyhodí chybu', () => {
-    expect(parsePhotoResponse({})).toEqual({ photos: [], next: null });
+    const r = parsePhotoResponse({});
+    expect(r.photos).toEqual([]);
+    expect(r.next).toBeNull();
+    expect(r.stats.total).toBe(0);
   });
   it('kredit pozadia sa pri importe očistí od značiek a skráti', () => {
     const bg = sanitizeBackground({ kind: 'image', value: 'data:image/png;base64,iVBORw0KGgo=', credit: '<script>x</script>' + 'a'.repeat(400) });

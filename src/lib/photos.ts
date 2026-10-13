@@ -29,9 +29,22 @@ export interface Photo {
   author: string;
 }
 
+export interface PhotoStats {
+  /** Počet súborov vrátených serverom a dôvody vyradenia – pomáha pri diagnostike. */
+  total: number;
+  noInfo: number;
+  mime: number;
+  size: number;
+  ratio: number;
+  license: number;
+  url: number;
+  sampleLicenses: string[];
+}
+
 export interface PhotoPage {
   photos: Photo[];
   next: number | null;
+  stats: PhotoStats;
 }
 
 const ALLOWED_LICENSE = /^(cc0|cc[- ]zero|public domain|pd\b|cc[- ]by(?![- ](nc|nd))(?:[- ]sa)?(?:[- ][\d.]+)?)/i;
@@ -61,19 +74,40 @@ interface ApiResponse {
 export function parsePhotoResponse(data: ApiResponse): PhotoPage {
   const pages = (data.query?.pages ?? []).slice().sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
   const photos: Photo[] = [];
+  const stats: PhotoStats = { total: pages.length, noInfo: 0, mime: 0, size: 0, ratio: 0, license: 0, url: 0, sampleLicenses: [] };
   for (const p of pages) {
     const info = p.imageinfo?.[0];
-    if (!info?.thumburl || !info.width || !info.height) continue;
-    if (!/^image\/(jpeg|png|webp)$/.test(info.mime ?? '')) continue;
+    if (!info?.thumburl || !info.width || !info.height) {
+      stats.noInfo++;
+      continue;
+    }
+    if (!/^image\/(jpeg|png|webp)$/.test(info.mime ?? '')) {
+      stats.mime++;
+      continue;
+    }
+    if (info.width < 1280) {
+      stats.size++;
+      continue;
+    }
     const ratio = info.width / info.height;
-    if (info.width < 1600 || ratio < 1.2 || ratio > 2.4) continue;
-    const license = info.extmetadata?.LicenseShortName?.value ?? '';
-    if (!isFreeLicense(license)) continue;
-    if (!/^https:\/\/upload\.wikimedia\.org\//.test(info.thumburl)) continue;
+    if (ratio < 1.15 || ratio > 3) {
+      stats.ratio++;
+      continue;
+    }
+    const license = (info.extmetadata?.LicenseShortName?.value ?? '').trim();
+    if (stats.sampleLicenses.length < 5) stats.sampleLicenses.push(license || '∅');
+    if (!isFreeLicense(license)) {
+      stats.license++;
+      continue;
+    }
+    if (!/^https:\/\/upload\.wikimedia\.org\//.test(info.thumburl)) {
+      stats.url++;
+      continue;
+    }
     const author = stripHtml(info.extmetadata?.Artist?.value ?? '').slice(0, 80) || 'Wikimedia Commons';
     photos.push({ title: p.title, thumb: info.thumburl, width: info.width, height: info.height, license: license.slice(0, 40), author });
   }
-  return { photos, next: data.continue?.gsroffset ?? null };
+  return { photos, next: data.continue?.gsroffset ?? null, stats };
 }
 
 const base = (extra: Record<string, string>) => new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', origin: '*', ...extra });

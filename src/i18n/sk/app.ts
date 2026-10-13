@@ -146,6 +146,7 @@ export const app = {
   'bg.photosNote': 'Vybrané fotografie z Wikimedia Commons s voľnou licenciou. Vyžaduje internet; vybraná fotka sa uloží do obrazovky, takže potom funguje aj offline. Pri zobrazení sa uvádza autor.',
   'bg.photosOffline': 'Fotky sa nepodarilo načítať (skontrolujte pripojenie).',
   'bg.photosNone': 'Nenašli sa vhodné fotky.',
+  'bg.photosDiag': 'Diagnostika: súborov {total}, vyradené – licencia {lic}, rozlíšenie {size}, pomer strán {ratio}, ostatné {info}. Licencie: {sample}',
   'bg.retry': 'Skúsiť znova',
   'bg.more': 'Načítať ďalšie',
   'bg.photoSet': 'Pozadie nastavené.',

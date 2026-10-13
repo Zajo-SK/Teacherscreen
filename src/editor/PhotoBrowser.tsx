@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { t } from '@/i18n';
 import { useApp } from '@/store/useApp';
-import { importPhoto, PHOTO_TOPICS, searchPhotos, type Photo } from '@/lib/photos';
+import { importPhoto, PHOTO_TOPICS, searchPhotos, type Photo, type PhotoStats } from '@/lib/photos';
 
 /** Fotky z Wikimedia Commons (voľné licencie). Vyžaduje internet; vybraná fotka sa uloží do obrazovky. */
 export function PhotoBrowser({ screenId }: { screenId: string }) {
@@ -15,6 +15,7 @@ export function PhotoBrowser({ screenId }: { screenId: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [applying, setApplying] = useState<string | null>(null);
+  const [stats, setStats] = useState<PhotoStats | null>(null);
   const abort = useRef<AbortController | null>(null);
 
   const load = useCallback(async (topicId: string, offset: number, append: boolean) => {
@@ -25,9 +26,20 @@ export function PhotoBrowser({ screenId }: { screenId: string }) {
     setError(false);
     try {
       const q = PHOTO_TOPICS.find((x) => x.id === topicId)!.query;
-      const page = await searchPhotos(q, offset, ctrl.signal);
-      setPhotos((cur) => (append ? [...cur, ...page.photos] : page.photos));
-      setNext(page.next);
+      // Ak prvá strana neobsahuje vhodné fotky, automaticky sa načíta ďalšia (najviac 5 strán).
+      let found: Photo[] = [];
+      let off: number | null = offset;
+      let last: PhotoStats | null = null;
+      for (let i = 0; i < 5 && off !== null && found.length < 9; i++) {
+        const page = await searchPhotos(q, off, ctrl.signal);
+        found = [...found, ...page.photos];
+        last = page.stats;
+        off = page.next;
+      }
+      if (found.length === 0) console.info('Fotky: žiadne vhodné výsledky', last);
+      setStats(last);
+      setPhotos((cur) => (append ? [...cur, ...found] : found));
+      setNext(off);
     } catch (e) {
       if ((e as Error).name !== 'AbortError') setError(true);
     } finally {
@@ -99,7 +111,12 @@ export function PhotoBrowser({ screenId }: { screenId: string }) {
             ))}
           </div>
           {loading && <p className="mt-2 text-sm text-muted">{t('common.loading')}</p>}
-          {!loading && !error && photos.length === 0 && <p className="mt-2 text-sm text-muted">{t('bg.photosNone')}</p>}
+          {!loading && !error && photos.length === 0 && (
+            <p className="mt-2 text-sm text-muted" data-testid="photo-none">
+              {t('bg.photosNone')}
+              {stats && <span className="mt-1 block break-all font-mono text-[10px]">{t('bg.photosDiag', { total: stats.total, lic: stats.license, size: stats.size, ratio: stats.ratio, info: stats.noInfo + stats.mime + stats.url, sample: stats.sampleLicenses.join(', ') })}</span>}
+            </p>
+          )}
           {next !== null && !loading && (
             <button type="button" className="btn mt-2 w-full" onClick={() => void load(topic, next, true)}>
               {t('bg.more')}

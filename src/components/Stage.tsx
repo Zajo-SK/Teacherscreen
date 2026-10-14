@@ -1,5 +1,5 @@
 import { Component, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ErrorInfo, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
-import { GripHorizontal, Lock, Settings2 } from 'lucide-react';
+import { GripHorizontal, Lock, LockOpen, Settings2 } from 'lucide-react';
 import { CANVAS_SIZES, type Background, type WidgetInstance } from '@/types';
 import { useApp } from '@/store/useApp';
 import { t } from '@/i18n';
@@ -116,34 +116,6 @@ const WidgetView = memo(function WidgetView({ widget, rect, mode, selected, scal
       <WidgetBoundary label={t(def.label)}>
         <Comp widget={{ ...widget, w: rect.w, h: rect.h }} config={widget.config} update={update} mode={mode} />
       </WidgetBoundary>
-      {edit && widget.locked && (
-        <div style={{ position: 'absolute', top: px(6), right: px(6), width: px(30), height: px(30), display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'rgba(15,23,42,.75)', color: '#fff' }} title={t('sel.locked')} role="img" aria-label={t('sel.locked')}>
-          <Lock size={px(16)} aria-hidden />
-        </div>
-      )}
-      {edit && selected && (
-        <button
-          type="button"
-          data-no-drag
-          data-testid="widget-gear"
-          aria-label={t('sel.settings')}
-          data-tip={t('sel.settingsTip')}
-          onClick={() => useApp.getState().setInspectorOpen(true)}
-          style={{ position: 'absolute', top: px(6), left: px(6), width: px(34), height: px(34), display: 'grid', placeItems: 'center', borderRadius: '50%', background: 'var(--primary)', color: 'var(--primary-fg)', border: 'none', cursor: 'pointer', zIndex: 6, padding: 0 }}
-        >
-          <Settings2 size={px(18)} aria-hidden />
-        </button>
-      )}
-      {edit && !widget.locked && (
-        <div
-          data-drag-handle
-          title={t('sel.dragHandle')}
-          style={{ position: 'absolute', top: px(4), left: '50%', transform: 'translateX(-50%)', width: px(64), height: px(26), borderRadius: px(13), background: 'var(--primary)', color: 'var(--primary-fg)', display: 'grid', placeItems: 'center', cursor: 'grab', opacity: selected ? 1 : 0, zIndex: 5 }}
-          className="transition-opacity group-hover:opacity-100"
-        >
-          <GripHorizontal size={px(18)} aria-hidden />
-        </div>
-      )}
     </div>
   );
 });
@@ -186,26 +158,33 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
     return { x: (clientX - r.left) / live.current.scale, y: (clientY - r.top) / live.current.scale };
   };
 
-  const onFramePointerDown = useCallback((e: RPointerEvent<HTMLDivElement>, w: WidgetInstance) => {
-    if (e.button !== 0 && e.pointerType === 'mouse') return;
+  const startMove = useCallback((e: RPointerEvent<HTMLElement>, w: WidgetInstance) => {
     const { selection: sel, screen: sc } = live.current;
-    const additive = e.shiftKey || e.ctrlKey || e.metaKey;
-    const alreadySelected = sel.includes(w.id);
-    if (additive) {
-      useApp.getState().select(alreadySelected ? sel.filter((x) => x !== w.id) : [...sel, w.id]);
-      return;
-    }
-    if (!alreadySelected) useApp.getState().select([w.id]);
-    const interactive = (e.target as HTMLElement).closest(INTERACTIVE);
-    const isHandle = !!(e.target as HTMLElement).closest('[data-drag-handle]');
-    if (interactive && !isHandle) return;
     if (!sc || w.locked) return;
+    const alreadySelected = sel.includes(w.id);
     const ids = (alreadySelected ? sel : [w.id]).filter((id) => sc.widgets.some((x) => x.id === id && !x.locked));
     const start: Record<string, Rect> = {};
     sc.widgets.filter((x) => ids.includes(x.id)).forEach((x) => (start[x.id] = { x: x.x, y: x.y, w: x.w, h: x.h }));
     gesture.current = { kind: 'move', sx: e.clientX, sy: e.clientY, ids, start, primary: w.id, moved: false, pointerId: e.pointerId };
     e.currentTarget.setPointerCapture(e.pointerId);
   }, []);
+
+  const onFramePointerDown = useCallback(
+    (e: RPointerEvent<HTMLDivElement>, w: WidgetInstance) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      const { selection: sel } = live.current;
+      const additive = e.shiftKey || e.ctrlKey || e.metaKey;
+      const alreadySelected = sel.includes(w.id);
+      if (additive) {
+        useApp.getState().select(alreadySelected ? sel.filter((x) => x !== w.id) : [...sel, w.id]);
+        return;
+      }
+      if (!alreadySelected) useApp.getState().select([w.id]);
+      if ((e.target as HTMLElement).closest(INTERACTIVE)) return;
+      startMove(e, w);
+    },
+    [startMove],
+  );
 
   const onHandleDown = (e: RPointerEvent<HTMLDivElement>, handle: HandleId, w: WidgetInstance) => {
     e.stopPropagation();
@@ -359,7 +338,9 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
                 {HANDLES.map((h) => {
                   const r = override?.[single.id] ?? single;
                   const inner = 12 / scale; // zásah zasahuje do widgetu len málo, aby neprekrýval jeho ovládacie prvky
-                  const pos = (c: number, start: number, size: number) => (c === 0 ? start - hit + inner : c === 1 ? start + size - inner : start + size / 2 - hit / 2);
+                  const mid = h.id === 'n' || h.id === 's' || h.id === 'e' || h.id === 'w';
+                  const hz = mid ? 28 / scale : hit; // stredné úchyty majú menší zásah, aby neprekrývali lištu nad widgetom
+                  const pos = (c: number, start: number, size: number) => (c === 0 ? start - hz + inner : c === 1 ? start + size - inner : start + size / 2 - hz / 2);
                   return (
                     <div key={h.id}>
                       <div style={{ position: 'absolute', left: r.x + r.w * h.cx - hs / 2, top: r.y + r.h * h.cy - hs / 2, width: hs, height: hs, borderRadius: hs / 4, background: 'var(--surface)', border: `${3 / scale}px solid var(--primary)`, boxSizing: 'border-box' }} />
@@ -370,13 +351,55 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
                         onPointerMove={onGesturePointer}
                         onPointerUp={onGestureEnd}
                         onPointerCancel={onGestureEnd}
-                        style={{ position: 'absolute', left: pos(h.cx, r.x, r.w), top: pos(h.cy, r.y, r.h), width: hit, height: hit, cursor: h.cursor, pointerEvents: 'auto', touchAction: 'none' }}
+                        style={{ position: 'absolute', left: pos(h.cx, r.x, r.w), top: pos(h.cy, r.y, r.h), width: hz, height: hz, cursor: h.cursor, pointerEvents: 'auto', touchAction: 'none' }}
                       />
                     </div>
                   );
                 })}
               </div>
             )}
+            {single && (() => {
+              const r = override?.[single.id] ?? single;
+              const btn = 40 / scale;
+              const barH = btn + 8 / scale;
+              const barW = (single.locked ? 2 : 3) * btn + 14 / scale;
+              const gap = 24 / scale;
+              let top = r.y - gap - barH;
+              if (top < 4 / scale) top = r.y + r.h + gap;
+              if (top + barH > canvas.h - 4 / scale) top = r.y + 10 / scale;
+              const left = clamp(r.x + r.w / 2 - barW / 2, 4 / scale, canvas.w - barW - 4 / scale);
+              const base = { width: btn, height: btn, display: 'grid', placeItems: 'center', borderRadius: '50%', border: 'none', background: 'transparent', color: 'var(--primary-fg)', padding: 0, cursor: 'pointer', pointerEvents: 'auto' as const, touchAction: 'none' as const };
+              return (
+                <div data-testid="widget-chrome" style={{ position: 'absolute', left, top, height: barH, width: barW, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 / scale, borderRadius: barH, background: 'var(--primary)', boxShadow: '0 6px 18px rgba(0,0,0,.28)', pointerEvents: 'auto', zIndex: 5 }}>
+                  {!single.locked && (
+                    <div
+                      data-drag-handle
+                      data-testid="widget-grip"
+                      role="button"
+                      aria-label={t('sel.dragHandle')}
+                      data-tip={t('sel.dragHandle')}
+                      style={{ ...base, cursor: 'grab' }}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        startMove(e, single);
+                      }}
+                      onPointerMove={onGesturePointer}
+                      onPointerUp={onGestureEnd}
+                      onPointerCancel={onGestureEnd}
+                    >
+                      <GripHorizontal size={btn * 0.55} aria-hidden />
+                    </div>
+                  )}
+                  <button type="button" data-testid="widget-gear" aria-label={t('sel.settings')} data-tip={t('sel.settingsTip')} style={base} onClick={() => useApp.getState().setInspectorOpen(true)}>
+                    <Settings2 size={btn * 0.55} aria-hidden />
+                  </button>
+                  <button type="button" data-testid="widget-lock" aria-label={single.locked ? t('sel.unlock') : t('sel.lock')} data-tip={single.locked ? t('sel.unlock') : t('sel.lock')} style={base} onClick={() => useApp.getState().setLocked(screenId, [single.id], !single.locked)}>
+                    {single.locked ? <Lock size={btn * 0.5} aria-hidden /> : <LockOpen size={btn * 0.5} aria-hidden />}
+                  </button>
+                </div>
+              );
+            })()}
             {marquee && <div style={{ position: 'absolute', left: marquee.x, top: marquee.y, width: marquee.w, height: marquee.h, border: `${2 / scale}px dashed var(--primary)`, background: 'rgba(37,99,235,.12)', zIndex: 10001, pointerEvents: 'none' }} />}
           </div>
         </ScreenRuntime>

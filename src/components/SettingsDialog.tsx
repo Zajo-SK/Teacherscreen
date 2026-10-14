@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
 import { Modal } from './ui';
 import { Segmented, Toggle } from './forms';
-import { t } from '@/i18n';
+import { t, useLanguage, setLanguage, LANGUAGES, LANG_CODES } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import { usePwaInstall } from '@/lib/pwa';
 import { restartTours } from './Tour';
@@ -12,6 +12,7 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
   const settings = useApp((s) => s.settings);
   const update = useApp((s) => s.updateSettings);
   const storageKind = useApp((s) => s.storageKind);
+  const lang = useLanguage();
   const { canInstall, install } = usePwaInstall();
   const [persisted, setPersisted] = useState<boolean | null>(null);
   useEffect(() => {
@@ -19,6 +20,14 @@ export function SettingsDialog({ open, onClose }: { open: boolean; onClose: () =
   }, [open]);
   return (
     <Modal open={open} onClose={onClose} title={t('settings.title')}>
+      <div className="mb-3">
+        <label htmlFor="settings-lang" className="mb-1 block text-sm font-semibold">{t('settings.language')}</label>
+        <select id="settings-lang" data-testid="settings-language" className="input" value={lang} onChange={(e) => void setLanguage(e.target.value)}>
+          {LANG_CODES.map((c) => (
+            <option key={c} value={c} lang={c}>{LANGUAGES[c].label}</option>
+          ))}
+        </select>
+      </div>
       <Segmented<ThemeMode>
         label={t('settings.theme')}
         value={settings.theme}

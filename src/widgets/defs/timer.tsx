@@ -43,10 +43,10 @@ function TimerWidget({ config, update }: WidgetProps<Config>) {
         {idle && (
           <>
             <button type="button" className="wbtn" aria-label={t('w.timer.minus')} onClick={() => c.setDuration(config.durationMs - 60000)} disabled={mins <= 1 && config.durationMs <= 60000}>
-              −1 min
+              {t('w.timer.minusShort')}
             </button>
             <button type="button" className="wbtn" aria-label={t('w.timer.plus')} onClick={() => c.setDuration(config.durationMs + 60000)}>
-              +1 min
+              {t('w.timer.plusShort')}
             </button>
           </>
         )}

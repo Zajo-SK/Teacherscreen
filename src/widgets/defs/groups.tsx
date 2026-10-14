@@ -144,7 +144,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
             : stale
               ? t('w.groups.stale')
               : config.result.length
-                ? t('w.groups.verified', { n: flat.length })
+                ? t('w.groups.counts', { n: flat.length, g: config.result.length })
                 : t('w.groups.summary', { n: names.length, mode: config.mode === 'count' ? t('w.groups.countN', { n: config.value }) : t('w.groups.sizeN', { n: config.value }) })}
         </span>
       </div>
@@ -155,7 +155,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
       )}
       <div
         data-testid="groups-result"
-        style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${Math.round(font * 8)}px, 1fr))`, gap: 14, alignContent: 'start' }}
+        style={{ flex: 1, minHeight: 0, overflow: 'auto', display: 'grid', gridTemplateColumns: `repeat(auto-fit, minmax(${Math.round(font * 8)}px, 1fr))`, gap: 14, alignContent: 'start', gridAutoRows: 'max-content' }}
       >
         {config.result.map((g, i) => {
           const hot = drag?.active && drag.over === i && drag.from !== i;

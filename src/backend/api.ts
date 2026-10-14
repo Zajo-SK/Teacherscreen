@@ -1,5 +1,6 @@
 import type { Screen } from '@/types';
 import { SCHEMA_VERSION } from '@/types';
+import { t } from '@/i18n';
 import { sanitizeScreen, stripStudentData } from '@/lib/schema';
 import { getWidgetDefinition } from '@/widgets/registry';
 import { getSupabase } from './client';
@@ -112,7 +113,7 @@ export const api = {
   },
   /** Nahrá obrazovku (bez zoznamov žiakov). Vráti čas úpravy na serveri v ms. */
   async upload(screen: Screen): Promise<number> {
-    const payload = { id: screen.id, name: screen.name.slice(0, 120) || 'Bez názvu', data: toRemoteData(screen), schema_version: SCHEMA_VERSION };
+    const payload = { id: screen.id, name: screen.name.slice(0, 120) || t('home.untitled'), data: toRemoteData(screen), schema_version: SCHEMA_VERSION };
     const rows = await run<{ updated_at: string }[]>((sb) => sb.from('screens').upsert(payload, { onConflict: 'id' }).select('updated_at'));
     return Date.parse(rows[0]!.updated_at);
   },
@@ -199,7 +200,7 @@ export const api = {
     return sanitizeScreen(rows[0].data).screen;
   },
   async publishTemplate(screen: Screen): Promise<void> {
-    await run((sb) => sb.from('school_templates').insert({ name: screen.name.slice(0, 120) || 'Šablóna', description: screen.description, data: toRemoteData(screen), schema_version: SCHEMA_VERSION }));
+    await run((sb) => sb.from('school_templates').insert({ name: screen.name.slice(0, 120) || t('cloud.templateFallback'), description: screen.description, data: toRemoteData(screen), schema_version: SCHEMA_VERSION }));
   },
   async deleteTemplate(id: string): Promise<void> {
     await run((sb) => sb.from('school_templates').delete().eq('id', id));

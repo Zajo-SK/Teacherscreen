@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { t } from '@/i18n';
 import {
   CANVAS_SIZES,
   type ClassList,
@@ -127,7 +128,7 @@ export function sanitizeScreen(raw: unknown, opts: { keepId?: boolean } = {}): S
     screen: {
       id,
       schemaVersion: SCHEMA_VERSION,
-      name: text(migrated.name, 120, 'Bez názvu') || 'Bez názvu',
+      name: text(migrated.name, 120, t('home.untitled')) || t('home.untitled'),
       description: text(migrated.description, 500),
       aspect,
       background: sanitizeBackground(migrated.background),

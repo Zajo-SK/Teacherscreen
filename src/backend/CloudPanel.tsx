@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Cloud, CloudOff, Link2, Copy, RefreshCw, Trash2, User } from 'lucide-react';
 import { ConfirmDialog, Modal } from '@/components/ui';
 import { Segmented, Toggle } from '@/components/forms';
-import { t, type TKey } from '@/i18n';
+import { t, getLocale, type TKey } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { useApp } from '@/store/useApp';
 import { api, type LinkRow, type RemoteScreenRow, type ShareRow } from './api';
@@ -368,7 +368,7 @@ function ShareDialog({ remoteId, name, open, onClose }: { remoteId: string; name
       <ul className="mb-2">
         {links.map((l) => (
           <li key={l.token} className="flex items-center gap-2 border-b border-line py-1 text-sm">
-            <span className="flex-1 truncate">{l.revoked_at ? t('cloud.linkRevoked') : t('cloud.linkExpires', { date: new Date(l.expires_at).toLocaleDateString('sk-SK') })}</span>
+            <span className="flex-1 truncate">{l.revoked_at ? t('cloud.linkRevoked') : t('cloud.linkExpires', { date: new Date(l.expires_at).toLocaleDateString(getLocale()) })}</span>
             {!l.revoked_at && (
               <>
                 <button type="button" className="btn btn-icon" aria-label={t('cloud.copyLink')} onClick={async () => { try { await navigator.clipboard.writeText(url(l.token)); toast(t('cloud.linkCopied')); } catch { setMsg(url(l.token)); } }}>
@@ -401,9 +401,9 @@ export function CloudScreenButton({ screenId }: { screenId: string }) {
   return (
     <>
       <button type="button" className="btn" data-testid="cloud-btn" onClick={() => setOpen(true)}>
-        <Cloud size={18} aria-hidden /> <span className="hidden xl:inline">Cloud</span>
+        <Cloud size={18} aria-hidden /> <span className="hidden xl:inline">{t('cloud.btn')}</span>
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title={`Cloud: ${screen.name}`}>
+      <Modal open={open} onClose={() => setOpen(false)} title={t('cloud.modalTitle', { name: screen.name })}>
         <p className="mb-2 text-sm text-muted">{t('sync.screensNote')}</p>
         <p className="mb-4 text-sm text-muted"><SyncBadge /> · {t('cloud.studentsNote')}</p>
         <div className="flex flex-wrap gap-2">

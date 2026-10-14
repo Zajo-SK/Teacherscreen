@@ -2,6 +2,8 @@
  * Knižnica pozadí: 36 originálnych ilustrácií generovaných v kóde (SVG). Sú voľne použiteľné bez licenčných
  * obmedzení, nesťahujú sa z internetu (fungujú offline), majú niekoľko kB a v dátach obrazovky nesú len ID.
  */
+import { t, type TKey } from '@/i18n';
+
 export type BgCategory = 'mesh' | 'waves' | 'shapes' | 'landscape' | 'patterns' | 'school';
 
 export interface BgPreset {
@@ -195,54 +197,61 @@ function blueprint(): string {
   return wrap(`<rect width="${W}" height="${H}" fill="#1b4b8f"/><rect width="${W}" height="${H}" fill="url(#s)"/><rect width="${W}" height="${H}" fill="url(#p)"/>`, `<pattern id="s" width="25" height="25" patternUnits="userSpaceOnUse"><path d="M25 0H0V25" fill="none" stroke="#fff" stroke-opacity="0.12" stroke-width="1"/></pattern><pattern id="p" width="125" height="125" patternUnits="userSpaceOnUse"><path d="M125 0H0V125" fill="none" stroke="#fff" stroke-opacity="0.28" stroke-width="2"/></pattern>`);
 }
 
-const P = (id: string, name: string, category: BgCategory, svg: () => string): BgPreset => ({ id, name, category, svg });
+const P = (id: string, _name: string, category: BgCategory, svg: () => string): BgPreset => ({
+  id,
+  get name() {
+    return t(`bg.${id}` as TKey);
+  },
+  category,
+  svg,
+});
 
 export const BG_PRESETS: readonly BgPreset[] = [
-  P('mesh-sunrise', 'Svitanie', 'mesh', () => mesh('sunrise', 11, '#fff4e0')),
-  P('mesh-ocean', 'Oceán', 'mesh', () => mesh('ocean', 12, '#e8f6ff')),
-  P('mesh-mint', 'Mäta', 'mesh', () => mesh('mint', 13, '#effff2')),
-  P('mesh-grape', 'Hrozno', 'mesh', () => mesh('grape', 14, '#f5eeff')),
-  P('mesh-candy', 'Cukrovinky', 'mesh', () => mesh('candy', 15, '#fff0f6')),
-  P('mesh-lemon', 'Citrón', 'mesh', () => mesh('lemon', 16, '#fffbe6')),
-  P('mesh-dusk', 'Súmrak', 'mesh', () => mesh('dusk', 17, '#2a2150')),
-  P('mesh-aurora', 'Polárna žiara', 'mesh', () => mesh('aurora', 18, '#0b1c22')),
-  P('waves-blue', 'Modré vlny', 'waves', () => waves(['#cfe8ff', '#9ccaff', '#6aa9f5', '#3f83e0'], '#eef6ff', 21)),
-  P('waves-pink', 'Ružové vlny', 'waves', () => waves(['#ffd6e7', '#ffb3d1', '#ff8cba', '#f55f9c'], '#fff2f7', 22)),
-  P('waves-green', 'Zelené vlny', 'waves', () => waves(['#d8f5e3', '#a9e8c1', '#6fd49c', '#35b77a'], '#f1fff6', 23)),
-  P('waves-sunset', 'Vlny pri západe', 'waves', () => waves(['#ffe0a3', '#ffb86b', '#ff8a5c', '#e5566d'], '#fff3d6', 24)),
-  P('waves-violet', 'Fialové vlny', 'waves', () => waves(['#e6dcff', '#c8b6ff', '#a68bf5', '#7b5ce0'], '#f6f1ff', 25)),
-  P('waves-night', 'Nočné vlny', 'waves', () => waves(['#2b3a67', '#3a4f8f', '#4c68b8', '#6f8ee0'], '#161b3a', 26)),
-  P('bubbles-pastel', 'Bubliny', 'shapes', () => bubbles(['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'], '#fffdf8', 31)),
-  P('bubbles-ocean', 'Hlbina', 'shapes', () => bubbles(['#7fd1ff', '#5aa9ff', '#a5f3fc', '#c4b5fd'], '#0e2a5c', 32)),
-  P('rings-fun', 'Kruhy', 'shapes', () => rings(['#ff6b6b', '#ffc233', '#2ec4a6', '#6c5ce7', '#4cc9f0'], '#fffaf0', 33)),
-  P('lowpoly-sky', 'Mozaika – obloha', 'shapes', () => lowpoly(['#4facfe', '#6fc3ff', '#a1dcff', '#d5f0ff'], 34)),
-  P('lowpoly-fire', 'Mozaika – oheň', 'shapes', () => lowpoly(['#ff9a76', '#ffb88c', '#ff6f91', '#ffd3a5'], 35)),
-  P('lowpoly-forest', 'Mozaika – les', 'shapes', () => lowpoly(['#2d6a4f', '#40916c', '#74c69d', '#b7e4c7'], 36)),
-  P('land-sunset', 'Západ slnka', 'landscape', () => sky('#ff9a8b', '#ffe3a3', '#fff3c4', ['#e86a6a', '#c0476a', '#7a3567'], 41, 0.52)),
-  P('land-meadow', 'Lúka', 'landscape', () => sky('#8ed1fc', '#e4f6ff', '#fff59d', ['#9be07a', '#66c26a', '#3f9d57'], 42, 0.3)),
-  P('land-mountains', 'Hory', 'landscape', () => mountains('#a8d8ff', '#f4fbff', ['#9db7d6', '#6f8fb8', '#44628f'], 43)),
-  P('land-desert', 'Púšť', 'landscape', () => sky('#ffd9a0', '#fff1d6', '#ffb347', ['#f2b66d', '#dd9a4f', '#b9783a'], 44, 0.4)),
-  P('land-night', 'Nočná obloha', 'landscape', () => night(45, '#0b1026', '#2b2a6b')),
-  P('land-sea', 'More', 'landscape', () => sky('#7ad7f0', '#d9f7ff', '#fff3a8', ['#4cc3e6', '#2a9fd0', '#1b6fa8'], 46, 0.35)),
-  P('pat-dots', 'Bodky', 'patterns', () => dots('#ffb3c6', '#fff5f8')),
-  P('pat-stripes', 'Pruhy', 'patterns', () => stripes('#e7f0ff', '#d3e3ff')),
-  P('pat-confetti', 'Konfety', 'patterns', () => confetti(['#ff6b6b', '#ffc233', '#2ec4a6', '#6c5ce7', '#4cc9f0'], '#fffdf7', 51)),
-  P('pat-grid', 'Mriežka', 'patterns', () => grid('#d9d4f2', '#f7f5ff', 60, 2)),
-  P('school-chalk', 'Školská tabuľa', 'school', chalkboard),
-  P('school-notebook', 'Štvorčekový zošit', 'school', notebook),
-  P('school-blueprint', 'Technický výkres', 'school', blueprint),
-  P('school-dots', 'Bodkovaný zošit', 'school', () => dots('#c9c3e8', '#fffefb', 40, 3)),
+  P('mesh-sunrise', 'mesh-sunrise', 'mesh', () => mesh('sunrise', 11, '#fff4e0')),
+  P('mesh-ocean', 'mesh-ocean', 'mesh', () => mesh('ocean', 12, '#e8f6ff')),
+  P('mesh-mint', 'mesh-mint', 'mesh', () => mesh('mint', 13, '#effff2')),
+  P('mesh-grape', 'mesh-grape', 'mesh', () => mesh('grape', 14, '#f5eeff')),
+  P('mesh-candy', 'mesh-candy', 'mesh', () => mesh('candy', 15, '#fff0f6')),
+  P('mesh-lemon', 'mesh-lemon', 'mesh', () => mesh('lemon', 16, '#fffbe6')),
+  P('mesh-dusk', 'mesh-dusk', 'mesh', () => mesh('dusk', 17, '#2a2150')),
+  P('mesh-aurora', 'mesh-aurora', 'mesh', () => mesh('aurora', 18, '#0b1c22')),
+  P('waves-blue', 'waves-blue', 'waves', () => waves(['#cfe8ff', '#9ccaff', '#6aa9f5', '#3f83e0'], '#eef6ff', 21)),
+  P('waves-pink', 'waves-pink', 'waves', () => waves(['#ffd6e7', '#ffb3d1', '#ff8cba', '#f55f9c'], '#fff2f7', 22)),
+  P('waves-green', 'waves-green', 'waves', () => waves(['#d8f5e3', '#a9e8c1', '#6fd49c', '#35b77a'], '#f1fff6', 23)),
+  P('waves-sunset', 'waves-sunset', 'waves', () => waves(['#ffe0a3', '#ffb86b', '#ff8a5c', '#e5566d'], '#fff3d6', 24)),
+  P('waves-violet', 'waves-violet', 'waves', () => waves(['#e6dcff', '#c8b6ff', '#a68bf5', '#7b5ce0'], '#f6f1ff', 25)),
+  P('waves-night', 'waves-night', 'waves', () => waves(['#2b3a67', '#3a4f8f', '#4c68b8', '#6f8ee0'], '#161b3a', 26)),
+  P('bubbles-pastel', 'bubbles-pastel', 'shapes', () => bubbles(['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'], '#fffdf8', 31)),
+  P('bubbles-ocean', 'bubbles-ocean', 'shapes', () => bubbles(['#7fd1ff', '#5aa9ff', '#a5f3fc', '#c4b5fd'], '#0e2a5c', 32)),
+  P('rings-fun', 'rings-fun', 'shapes', () => rings(['#ff6b6b', '#ffc233', '#2ec4a6', '#6c5ce7', '#4cc9f0'], '#fffaf0', 33)),
+  P('lowpoly-sky', 'lowpoly-sky', 'shapes', () => lowpoly(['#4facfe', '#6fc3ff', '#a1dcff', '#d5f0ff'], 34)),
+  P('lowpoly-fire', 'lowpoly-fire', 'shapes', () => lowpoly(['#ff9a76', '#ffb88c', '#ff6f91', '#ffd3a5'], 35)),
+  P('lowpoly-forest', 'lowpoly-forest', 'shapes', () => lowpoly(['#2d6a4f', '#40916c', '#74c69d', '#b7e4c7'], 36)),
+  P('land-sunset', 'land-sunset', 'landscape', () => sky('#ff9a8b', '#ffe3a3', '#fff3c4', ['#e86a6a', '#c0476a', '#7a3567'], 41, 0.52)),
+  P('land-meadow', 'land-meadow', 'landscape', () => sky('#8ed1fc', '#e4f6ff', '#fff59d', ['#9be07a', '#66c26a', '#3f9d57'], 42, 0.3)),
+  P('land-mountains', 'land-mountains', 'landscape', () => mountains('#a8d8ff', '#f4fbff', ['#9db7d6', '#6f8fb8', '#44628f'], 43)),
+  P('land-desert', 'land-desert', 'landscape', () => sky('#ffd9a0', '#fff1d6', '#ffb347', ['#f2b66d', '#dd9a4f', '#b9783a'], 44, 0.4)),
+  P('land-night', 'land-night', 'landscape', () => night(45, '#0b1026', '#2b2a6b')),
+  P('land-sea', 'land-sea', 'landscape', () => sky('#7ad7f0', '#d9f7ff', '#fff3a8', ['#4cc3e6', '#2a9fd0', '#1b6fa8'], 46, 0.35)),
+  P('pat-dots', 'pat-dots', 'patterns', () => dots('#ffb3c6', '#fff5f8')),
+  P('pat-stripes', 'pat-stripes', 'patterns', () => stripes('#e7f0ff', '#d3e3ff')),
+  P('pat-confetti', 'pat-confetti', 'patterns', () => confetti(['#ff6b6b', '#ffc233', '#2ec4a6', '#6c5ce7', '#4cc9f0'], '#fffdf7', 51)),
+  P('pat-grid', 'pat-grid', 'patterns', () => grid('#d9d4f2', '#f7f5ff', 60, 2)),
+  P('school-chalk', 'school-chalk', 'school', chalkboard),
+  P('school-notebook', 'school-notebook', 'school', notebook),
+  P('school-blueprint', 'school-blueprint', 'school', blueprint),
+  P('school-dots', 'school-dots', 'school', () => dots('#c9c3e8', '#fffefb', 40, 3)),
 ];
 
 const BY_ID = new Map(BG_PRESETS.map((p) => [p.id, p]));
 
 export const BG_CATEGORIES: { id: BgCategory; label: string }[] = [
-  { id: 'mesh', label: 'Farebné prelievanie' },
-  { id: 'waves', label: 'Vlny' },
-  { id: 'shapes', label: 'Tvary' },
-  { id: 'landscape', label: 'Krajina' },
-  { id: 'patterns', label: 'Vzory' },
-  { id: 'school', label: 'Škola' },
+  { id: 'mesh', get label() { return t('bg.cat.mesh'); } },
+  { id: 'waves', get label() { return t('bg.cat.waves'); } },
+  { id: 'shapes', get label() { return t('bg.cat.shapes'); } },
+  { id: 'landscape', get label() { return t('bg.cat.landscape'); } },
+  { id: 'patterns', get label() { return t('bg.cat.patterns'); } },
+  { id: 'school', get label() { return t('bg.cat.school'); } },
 ];
 
 export function isBgPresetId(v: unknown): v is string {

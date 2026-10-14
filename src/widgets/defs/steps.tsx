@@ -9,7 +9,7 @@ import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const step = z.object({ id: str('', 40), text: str('', 200), done: z.boolean().catch(false) });
 const schema = z.object({
-  title: str('Postup práce', 120),
+  title: str(() => t('w.steps.def.title'), 120),
   steps: z
     .array(step)
     .max(30)

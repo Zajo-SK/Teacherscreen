@@ -7,9 +7,9 @@ import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const schema = z.object({
   active: oneOf(['red', 'yellow', 'green'] as const, 'red'),
-  redLabel: str('Ticho – pracujeme samostatne', 60),
-  yellowLabel: str('Šepkáme – práca vo dvojiciach', 60),
-  greenLabel: str('Môžeme diskutovať', 60),
+  redLabel: str(() => t('w.traffic.def.red'), 60),
+  yellowLabel: str(() => t('w.traffic.def.yellow'), 60),
+  greenLabel: str(() => t('w.traffic.def.green'), 60),
 });
 type Config = z.output<typeof schema>;
 type Light = Config['active'];

@@ -4,7 +4,7 @@ import { ConfirmDialog, Modal } from '@/components/ui';
 import { Segmented } from '@/components/forms';
 import { NamesEditor } from '@/widgets/NamesEditor';
 import { ASPECTS } from '@/editor/aspects';
-import { t, type TKey } from '@/i18n';
+import { t, getLocale, type TKey } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { useApp } from '@/store/useApp';
 import { api, BackendError, type AdminUser, type AuditRow, type RemoteClassRow, type Role } from './api';
@@ -333,7 +333,7 @@ export function AdminPage() {
               {audit.length === 0 && <li className="text-muted">{t('cloud.empty')}</li>}
               {audit.map((a) => (
                 <li key={a.id} className="border-b border-line py-1">
-                  {new Date(a.created_at).toLocaleString('sk-SK')} · {t(`admin.action.${a.action}` as TKey)} · <strong>{a.target_nick}</strong>
+                  {new Date(a.created_at).toLocaleString(getLocale())} · {t(`admin.action.${a.action}` as TKey)} · <strong>{a.target_nick}</strong>
                   {a.detail ? ` (${a.detail})` : ''}
                 </li>
               ))}

@@ -10,7 +10,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   reporter: [['list']],
-  use: { baseURL: 'http://127.0.0.1:4173', trace: 'retain-on-failure', launchOptions },
+  use: { baseURL: 'http://127.0.0.1:4173', locale: 'sk-SK', trace: 'retain-on-failure', launchOptions },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'], launchOptions, viewport: { width: 1440, height: 900 } }, testIgnore: /tablet|backend|sync/ },
     { name: 'tablet', use: { ...devices['iPad (gen 7)'], defaultBrowserType: 'chromium', launchOptions }, testMatch: /tablet/ },

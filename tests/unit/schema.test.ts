@@ -37,8 +37,8 @@ describe('šablóny', () => {
 const ops = (ws: { id: string; x: number; y: number; w: number; h: number }[], id: string) => ws.find((w) => w.id === id)!;
 
 describe('register widgetov', () => {
-  it('obsahuje všetkých 15 widgetov a každý má platné predvolené nastavenia', () => {
-    expect(widgetDefinitions).toHaveLength(15);
+  it('obsahuje všetkých 16 widgetov a každý má platné predvolené nastavenia', () => {
+    expect(widgetDefinitions).toHaveLength(16);
     for (const d of widgetDefinitions) {
       const w = createWidget(d.type);
       expect(w.config, d.type).toBeTruthy();

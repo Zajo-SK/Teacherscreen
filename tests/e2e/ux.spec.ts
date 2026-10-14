@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { addWidget, newScreen, openApp, widget } from './helpers';
+import { addWidget, newScreen, openApp, openSection, widget } from './helpers';
 
 test.describe('používateľský zážitok', () => {
   test('úvodná prehliadka sa ukáže pri prvom otvorení, dá sa prejsť a už sa nevracia', async ({ page }) => {
@@ -41,6 +41,7 @@ test.describe('používateľský zážitok', () => {
     await expect(page.getByRole('tooltip')).toContainText('Späť');
     await page.mouse.move(5, 400);
     await expect(page.getByRole('tooltip')).toHaveCount(0);
+    await openSection(page, 'palette-time');
     await page.getByTestId('add-timer').hover();
     await expect(page.getByRole('tooltip')).toContainText('Odpočítavanie');
     await page.getByTestId('add-timer').click();
@@ -117,7 +118,7 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     await openApp(page);
     await newScreen(page);
     await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
-    await page.getByRole('button', { name: /Fotky z internetu/ }).click();
+    await openSection(page, 'bg-photos');
     await expect(page.getByTestId('photo-item')).toHaveCount(1); // fotka s NC licenciou je vyradená
     await page.getByTestId('photo-item').click();
     await expect(page.getByTestId('bg-credit')).toContainText('Peter Fotograf · CC BY-SA 4.0 · Wikimedia Commons');
@@ -129,7 +130,7 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     // výpadok siete
     online = false;
     await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
-    await page.getByRole('button', { name: /Fotky z internetu/ }).click();
+    await openSection(page, 'bg-photos');
     await page.getByRole('tab', { name: 'Hory' }).click();
     await expect(page.getByTestId('photo-error')).toBeVisible();
   });

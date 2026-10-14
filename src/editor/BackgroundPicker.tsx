@@ -5,6 +5,7 @@ import { useApp } from '@/store/useApp';
 import type { Background } from '@/types';
 import { loadImageFile } from '@/lib/image';
 import { PhotoBrowser } from './PhotoBrowser';
+import { Collapsible } from '@/components/Collapsible';
 import { BG_CATEGORIES, BG_PRESETS, bgPresetUrl, type BgCategory } from '@/lib/backgrounds';
 
 const COLORS = ['#ffffff', '#fbf8f3', '#fff1b8', '#d7f5e6', '#d6ecff', '#ffe0ec', '#e9e4ff', '#2a2540', '#14121f', '#14532d', '#1e3a8a', '#7c2d12'];
@@ -48,53 +49,57 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
     />
   );
   return (
-    <div data-testid="bg-picker">
-      <span className="label">{t('bg.library')}</span>
-      <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label={t('bg.library')}>
-        {BG_CATEGORIES.map((c) => (
-          <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className="rounded-full border border-line px-3 py-1 text-xs font-semibold aria-selected:border-transparent aria-selected:bg-primary aria-selected:text-primary-fg" onClick={() => setCat(c.id)}>
-            {CATEGORY_LABEL[c.id]}
-          </button>
-        ))}
-      </div>
-      <div className="mb-4 grid grid-cols-3 gap-2" data-testid="bg-presets">
-        {BG_PRESETS.filter((p) => p.category === cat).map((p) => (
-          <button
-            key={p.id}
-            type="button"
-            data-testid={`bg-${p.id}`}
-            aria-label={p.name}
-            data-tip={p.name}
-            aria-pressed={background.kind === 'preset' && background.value === p.id}
-            onClick={() => setBackground(screenId, { kind: 'preset', value: p.id })}
-            className="aspect-video rounded-xl border-2 border-line transition-transform hover:scale-105 aria-pressed:ring-4 aria-pressed:ring-primary"
-            style={{ background: `center / cover no-repeat ${bgPresetUrl(p.id) ?? ''}` }}
-          />
-        ))}
-      </div>
-      <PhotoBrowser screenId={screenId} />
-      <span className="label">{t('bg.colors')}</span>
-      <div className="mb-3 flex flex-wrap gap-2">
-        {COLORS.map((c) => swatch({ kind: 'color', value: c }, c))}
-        <input type="color" aria-label={t('bg.custom')} data-tip={t('bg.custom')} className="size-10 cursor-pointer rounded-xl border-2 border-line bg-transparent p-0" value={background.kind === 'color' && /^#[0-9a-f]{6}$/i.test(background.value) ? background.value : '#ffffff'} onChange={(e) => setBackground(screenId, { kind: 'color', value: e.target.value })} />
-      </div>
-      <span className="label">{t('bg.gradients')}</span>
-      <div className="mb-3 flex flex-wrap gap-2">{GRADIENTS.map((g, i) => swatch({ kind: 'gradient', value: g }, `${t('bg.gradients')} ${i + 1}`))}</div>
-      {background.kind === 'image' && background.credit && (
-        <p className="mb-3 text-xs text-muted" data-testid="bg-credit-info">
-          {t('bg.photoBy')}: {background.credit}
-        </p>
-      )}
-      <span className="label">{t('bg.image')}</span>
-      <div className="flex flex-wrap gap-2">
-        <button type="button" className="btn" disabled={busy} onClick={() => file.current?.click()}>
-          <Upload size={18} aria-hidden /> {t('bg.upload')}
-        </button>
-        {background.kind === 'image' && (
-          <button type="button" className="btn btn-danger" onClick={() => setBackground(screenId, { kind: 'preset', value: 'mesh-ocean' })}>
-            <Trash2 size={18} aria-hidden /> {t('bg.removeImage')}
-          </button>
+    <div data-testid="bg-picker" className="-mx-2">
+      <Collapsible level={2} id="bg-library" title={t('bg.library')} defaultOpen>
+        <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label={t('bg.library')}>
+          {BG_CATEGORIES.map((c) => (
+            <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className="rounded-full border border-line px-3 py-1 text-xs font-semibold aria-selected:border-transparent aria-selected:bg-primary aria-selected:text-primary-fg" onClick={() => setCat(c.id)}>
+              {CATEGORY_LABEL[c.id]}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-3 gap-2" data-testid="bg-presets">
+          {BG_PRESETS.filter((p) => p.category === cat).map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              data-testid={`bg-${p.id}`}
+              aria-label={p.name}
+              data-tip={p.name}
+              aria-pressed={background.kind === 'preset' && background.value === p.id}
+              onClick={() => setBackground(screenId, { kind: 'preset', value: p.id })}
+              className="aspect-video rounded-xl border-2 border-line transition-transform hover:scale-105 aria-pressed:ring-4 aria-pressed:ring-primary"
+              style={{ background: `center / cover no-repeat ${bgPresetUrl(p.id) ?? ''}` }}
+            />
+          ))}
+        </div>
+      </Collapsible>
+      <Collapsible level={2} id="bg-photos" title={`📷 ${t('bg.photos')}`}>
+        <PhotoBrowser screenId={screenId} />
+      </Collapsible>
+      <Collapsible level={2} id="bg-colors" title={t('bg.colors')}>
+        <div className="mb-3 flex flex-wrap gap-2">
+          {COLORS.map((c) => swatch({ kind: 'color', value: c }, c))}
+          <input type="color" aria-label={t('bg.custom')} data-tip={t('bg.custom')} className="size-10 cursor-pointer rounded-xl border-2 border-line bg-transparent p-0" value={background.kind === 'color' && /^#[0-9a-f]{6}$/i.test(background.value) ? background.value : '#ffffff'} onChange={(e) => setBackground(screenId, { kind: 'color', value: e.target.value })} />
+        </div>
+        <span className="label">{t('bg.gradients')}</span>
+        <div className="flex flex-wrap gap-2">{GRADIENTS.map((g, i) => swatch({ kind: 'gradient', value: g }, `${t('bg.gradients')} ${i + 1}`))}</div>
+      </Collapsible>
+      <Collapsible level={2} id="bg-own" title={t('bg.image')}>
+        {background.kind === 'image' && background.credit && (
+          <p className="mb-3 text-xs text-muted" data-testid="bg-credit-info">
+            {t('bg.photoBy')}: {background.credit}
+          </p>
         )}
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn" disabled={busy} onClick={() => file.current?.click()}>
+            <Upload size={18} aria-hidden /> {t('bg.upload')}
+          </button>
+          {background.kind === 'image' && (
+            <button type="button" className="btn btn-danger" onClick={() => setBackground(screenId, { kind: 'preset', value: 'mesh-ocean' })}>
+              <Trash2 size={18} aria-hidden /> {t('bg.removeImage')}
+            </button>
+          )}
         <input
           ref={file}
           type="file"
@@ -115,7 +120,8 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
             }
           }}
         />
-      </div>
+        </div>
+      </Collapsible>
     </div>
   );
 }

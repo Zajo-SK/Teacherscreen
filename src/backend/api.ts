@@ -24,6 +24,7 @@ export interface RemoteClassRow {
   id: string;
   name: string;
   names: string[];
+  rules?: unknown;
   updated_at: string;
 }
 export interface AdminUser extends Profile {
@@ -132,10 +133,22 @@ export const api = {
 
   // ---- triedy (zoznamy žiakov) – iba súkromné, iba vlastník
   async listClasses(userId: string): Promise<RemoteClassRow[]> {
-    return run<RemoteClassRow[]>((sb) => sb.from('class_lists').select('id,name,names,updated_at').eq('owner_id', userId));
+    try {
+      return await run<RemoteClassRow[]>((sb) => sb.from('class_lists').select('id,name,names,rules,updated_at').eq('owner_id', userId));
+    } catch (e) {
+      // Starší server bez migrácie 0004 (stĺpec `rules` chýba) – pokračujeme bez pravidiel.
+      if (e instanceof BackendError && /rules/i.test(e.message)) return run<RemoteClassRow[]>((sb) => sb.from('class_lists').select('id,name,names,updated_at').eq('owner_id', userId));
+      throw e;
+    }
   },
-  async upsertClass(c: { id: string; name: string; names: string[] }): Promise<number> {
-    const rows = await run<{ updated_at: string }[]>((sb) => sb.from('class_lists').upsert({ id: c.id, name: c.name, names: c.names }, { onConflict: 'id' }).select('updated_at'));
+  async upsertClass(c: { id: string; name: string; names: string[]; rules?: unknown }): Promise<number> {
+    let rows: { updated_at: string }[];
+    try {
+      rows = await run<{ updated_at: string }[]>((sb) => sb.from('class_lists').upsert({ id: c.id, name: c.name, names: c.names, rules: c.rules ?? {} }, { onConflict: 'id' }).select('updated_at'));
+    } catch (e) {
+      if (!(e instanceof BackendError && /rules/i.test(e.message))) throw e;
+      rows = await run<{ updated_at: string }[]>((sb) => sb.from('class_lists').upsert({ id: c.id, name: c.name, names: c.names }, { onConflict: 'id' }).select('updated_at'));
+    }
     return Date.parse(rows[0]!.updated_at);
   },
   async deleteClass(id: string): Promise<void> {

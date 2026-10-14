@@ -4,6 +4,7 @@ import {
   DEFAULT_SETTINGS,
   type AspectId,
   type ClassList,
+  type GroupRules,
   type Background,
   type Deck,
   type Screen,
@@ -73,7 +74,7 @@ interface AppState {
   /** Prevezme obrazovku zo servera so zachovaným časom úpravy (nepovažuje sa za lokálnu zmenu). */
   applyRemoteScreen: (s: Screen) => void;
   removeLocalScreen: (id: string) => void;
-  saveClass: (c: { id?: string; name: string; names: string[] }) => string;
+  saveClass: (c: { id?: string; name: string; names: string[]; rules?: GroupRules }) => string;
   deleteClass: (id: string) => void;
   applyRemoteClass: (c: ClassList) => void;
   removeLocalClass: (id: string) => void;
@@ -347,7 +348,8 @@ export const useApp = create<AppState>()((set, get) => {
     saveClass(c) {
       const id = c.id ?? uid();
       const names = c.names.map((n) => n.trim().slice(0, 60)).filter(Boolean).slice(0, 200);
-      const rec: ClassList = { id, name: c.name.trim().slice(0, 80) || t('classes.untitled'), names, updatedAt: Date.now() };
+      const rules = c.rules ?? get().classes[id]?.rules;
+      const rec: ClassList = { id, name: c.name.trim().slice(0, 80) || t('classes.untitled'), names, ...(rules ? { rules } : {}), updatedAt: Date.now() };
       set((st) => ({ classes: { ...st.classes, [id]: rec } }));
       saver?.markClass(id);
       return id;

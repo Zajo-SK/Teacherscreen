@@ -100,6 +100,9 @@ body {
   .btn[aria-pressed='true'] {
     @apply border-primary bg-primary/15;
   }
+  .btn-primary[aria-pressed='true'] {
+    @apply bg-primary-hover text-primary-fg;
+  }
   .input {
     @apply min-h-11 w-full rounded-2xl border-[1.5px] border-line bg-surface px-4 text-base text-ink transition-shadow placeholder:text-muted focus:border-primary;
   }

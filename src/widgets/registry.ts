@@ -16,6 +16,7 @@ import { stepsWidget } from './defs/steps';
 import { pollWidget } from './defs/poll';
 import { drawWidget } from './defs/draw';
 import { visualTimerWidget } from './defs/visualTimer';
+import { numberWidget } from './defs/number';
 
 /**
  * Register widgetov. Nový widget = nový súbor v `defs/` + jeden riadok tu (+ preklady v i18n).
@@ -32,6 +33,7 @@ const ALL: WidgetDefinition[] = [
   groupsWidget,
   scoreboardWidget,
   diceWidget,
+  numberWidget,
   imageWidget,
   qrWidget,
   stepsWidget,

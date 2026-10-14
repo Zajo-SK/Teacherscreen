@@ -71,6 +71,7 @@ export const app = {
   'editor.inspector': 'Vlastnosti',
   'editor.inspectorTip': 'Zobraziť alebo skryť panel s nastaveniami (widgetu alebo obrazovky)',
   'editor.nothingSelected': 'Vyberte widget na ploche a upravte jeho nastavenia.',
+  'editor.screenSection': 'Obrazovka',
   'editor.screenName': 'Názov obrazovky',
   'editor.screenDescription': 'Popis',
   'editor.background': 'Pozadie',

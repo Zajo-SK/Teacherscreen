@@ -1,6 +1,7 @@
 import { clearTombstones, getTombstones } from '@/lib/tombstones';
 import { useApp } from '@/store/useApp';
 import { t } from '@/i18n';
+import { sanitizeRules } from '@/lib/schema';
 import { api, BackendError, mergeStudentData } from './api';
 import { useCloud } from './useCloud';
 
@@ -179,14 +180,16 @@ async function syncClasses(userId: string) {
   // Pri konflikte vyhráva server, lokálna verzia sa zachová ako samostatná trieda.
   for (const id of plan.conflict) {
     const mine = useApp.getState().classes[id];
-    if (mine) useApp.getState().saveClass({ name: `${mine.name} (${t('sync.localCopy')})`, names: mine.names });
+    if (mine) useApp.getState().saveClass({ name: `${mine.name} (${t('sync.localCopy')})`, names: mine.names, rules: mine.rules });
     plan.pull.push(id);
   }
   for (const id of plan.pull) {
     const r = byId.get(id);
     if (!r) continue;
     const at = Date.parse(r.updated_at);
-    useApp.getState().applyRemoteClass({ id, name: r.name, names: r.names, updatedAt: at });
+    const rules = sanitizeRules(r.rules);
+    const hasRules = rules.apart.length + rules.together.length > 0;
+    useApp.getState().applyRemoteClass({ id, name: r.name, names: r.names, ...(hasRules ? { rules } : {}), updatedAt: at });
     state[id] = { remoteAt: at, localAt: at };
   }
   for (const id of plan.push) {

@@ -241,4 +241,17 @@ export const widgets = {
   'w.vtimer.ring': 'Kruh',
   'w.vtimer.bar': 'Lišta',
   'w.vtimer.note': 'Farba sa mení zo zelenej na oranžovú a červenú, keď sa čas blíži ku koncu. Po prepojení ovláda ten istý časovač ako widget Časovač.',
+  // --- predvolené hodnoty widgetov (vyhodnocujú sa pri vytvorení) ---
+  'w.text.def.title': 'Nadpis',
+  'w.text.def.body': 'Sem napíšte text…',
+  'w.steps.def.title': 'Postup práce',
+  'w.traffic.def.red': 'Ticho – pracujeme samostatne',
+  'w.traffic.def.yellow': 'Šepkáme – práca vo dvojiciach',
+  'w.traffic.def.green': 'Môžeme diskutovať',
+  'w.poll.def.question': 'Aká je vaša odpoveď?',
+  'w.poll.def.yes': 'Áno',
+  'w.poll.def.no': 'Nie',
+  'w.scoreboard.def.team': 'Tím {n}',
+  'w.timer.minusShort': '−1 min',
+  'w.timer.plusShort': '+1 min',
 } as const;

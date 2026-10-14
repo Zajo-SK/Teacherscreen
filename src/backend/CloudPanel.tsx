@@ -401,9 +401,9 @@ export function CloudScreenButton({ screenId }: { screenId: string }) {
   return (
     <>
       <button type="button" className="btn" data-testid="cloud-btn" onClick={() => setOpen(true)}>
-        <Cloud size={18} aria-hidden /> <span className="hidden xl:inline">Cloud</span>
+        <Cloud size={18} aria-hidden /> <span className="hidden xl:inline">{t('cloud.btn')}</span>
       </button>
-      <Modal open={open} onClose={() => setOpen(false)} title={`Cloud: ${screen.name}`}>
+      <Modal open={open} onClose={() => setOpen(false)} title={t('cloud.modalTitle', { name: screen.name })}>
         <p className="mb-2 text-sm text-muted">{t('sync.screensNote')}</p>
         <p className="mb-4 text-sm text-muted"><SyncBadge /> · {t('cloud.studentsNote')}</p>
         <div className="flex flex-wrap gap-2">

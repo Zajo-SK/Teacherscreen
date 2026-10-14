@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
 /** Pomocné polia schémy – každé pole je odolné voči chybným/neznámym vstupom (`catch` na predvolenú hodnotu). */
-export const str = (def: string, max = 500) =>
+/** `def` môže byť funkcia – predvolený text sa potom vyhodnotí pri každom parsovaní (podľa aktuálneho jazyka). */
+export const str = (def: string | (() => string), max = 500) =>
   z
     .string()
     .transform((s) => s.slice(0, max))
-    .catch(def);
+    .catch(() => (typeof def === 'function' ? def() : def));
 
 export const num = (def: number, min: number, max: number) =>
   z

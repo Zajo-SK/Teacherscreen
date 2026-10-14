@@ -7,16 +7,17 @@ import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const TEAM_COLORS = ['#6d5dfc', '#ff4d6d', '#12b886', '#f59f00'];
 const teamSchema = (i: number) =>
-  z.object({ name: str(`Tím ${i + 1}`, 30), score: int(0, -9999, 99999) }).catch({ name: `Tím ${i + 1}`, score: 0 });
+  z.object({ name: str(() => t('w.scoreboard.def.team', { n: i + 1 }), 30), score: int(0, -9999, 99999) }).catch(() => ({ name: t('w.scoreboard.def.team', { n: i + 1 }), score: 0 }));
 
+type Team = { name: string; score: number };
 const schema = z.object({
   teamCount: int(2, 2, 4),
   step: int(1, 1, 1000),
-  teams: z.tuple([teamSchema(0), teamSchema(1), teamSchema(2), teamSchema(3)]).catch([
-    { name: 'Tím 1', score: 0 },
-    { name: 'Tím 2', score: 0 },
-    { name: 'Tím 3', score: 0 },
-    { name: 'Tím 4', score: 0 },
+  teams: z.tuple([teamSchema(0), teamSchema(1), teamSchema(2), teamSchema(3)]).catch((): [Team, Team, Team, Team] => [
+    { name: t('w.scoreboard.def.team', { n: 1 }), score: 0 },
+    { name: t('w.scoreboard.def.team', { n: 2 }), score: 0 },
+    { name: t('w.scoreboard.def.team', { n: 3 }), score: 0 },
+    { name: t('w.scoreboard.def.team', { n: 4 }), score: 0 },
   ]),
 });
 type Config = z.output<typeof schema>;

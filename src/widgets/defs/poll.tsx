@@ -8,15 +8,15 @@ import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const option = z.object({ id: str('', 40), text: str('', 100), votes: int(0, 0, 9999) });
 const schema = z.object({
-  question: str('Aká je vaša odpoveď?', 200),
+  question: str(() => t('w.poll.def.question'), 200),
   options: z
     .array(option)
     .min(2)
     .max(6)
     .transform((a) => a.map((o, i) => (o.id ? o : { ...o, id: `o${i}` })))
-    .catch([
-      { id: 'a', text: 'Áno', votes: 0 },
-      { id: 'b', text: 'Nie', votes: 0 },
+    .catch(() => [
+      { id: 'a', text: t('w.poll.def.yes'), votes: 0 },
+      { id: 'b', text: t('w.poll.def.no'), votes: 0 },
     ]),
   showPercent: bool(true),
 });

@@ -20,15 +20,6 @@ const GRADIENTS = [
   'linear-gradient(135deg,#7c2d12 0%,#be123c 100%)',
 ];
 
-const CATEGORY_LABEL: Record<BgCategory, string> = {
-  mesh: t('bg.cat.mesh'),
-  waves: t('bg.cat.waves'),
-  shapes: t('bg.cat.shapes'),
-  landscape: t('bg.cat.landscape'),
-  patterns: t('bg.cat.patterns'),
-  school: t('bg.cat.school'),
-};
-
 export function BackgroundPicker({ screenId, background }: { screenId: string; background: Background }) {
   const setBackground = useApp((s) => s.setBackground);
   const toast = useApp((s) => s.toast);
@@ -54,7 +45,7 @@ export function BackgroundPicker({ screenId, background }: { screenId: string; b
         <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label={t('bg.library')}>
           {BG_CATEGORIES.map((c) => (
             <button key={c.id} type="button" role="tab" aria-selected={cat === c.id} className="rounded-full border border-line px-3 py-1 text-xs font-semibold aria-selected:border-transparent aria-selected:bg-primary aria-selected:text-primary-fg" onClick={() => setCat(c.id)}>
-              {CATEGORY_LABEL[c.id]}
+              {c.label}
             </button>
           ))}
         </div>

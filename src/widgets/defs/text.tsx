@@ -7,8 +7,8 @@ import { bool, int, oneOf, str } from '../fields';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 const schema = z.object({
-  title: str('Nadpis', 120),
-  body: str('Sem napíšte text…', 4000),
+  title: str(() => t('w.text.def.title'), 120),
+  body: str(() => t('w.text.def.body'), 4000),
   fontSize: int(40, 14, 200),
   align: oneOf(['left', 'center', 'right'] as const, 'left'),
   bold: bool(false),

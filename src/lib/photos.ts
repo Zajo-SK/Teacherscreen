@@ -1,3 +1,5 @@
+import { t } from '@/i18n';
+
 /**
  * Fotky z internetu cez Wikimedia Commons (bez kľúča, s povoleným CORS). Zobrazujú sa iba vybrané („Featured pictures“)
  * obrázky s voľnou licenciou (CC0, verejná doména, CC BY, CC BY‑SA – bez NC/ND). Vybraná fotka sa zmenší a uloží
@@ -6,18 +8,18 @@
 const API = 'https://commons.wikimedia.org/w/api.php';
 
 export const PHOTO_TOPICS: { id: string; label: string; query: string }[] = [
-  { id: 'landscape', label: 'Krajina', query: 'landscape' },
-  { id: 'mountain', label: 'Hory', query: 'mountain' },
-  { id: 'sea', label: 'More', query: 'sea beach' },
-  { id: 'forest', label: 'Les', query: 'forest' },
-  { id: 'sunset', label: 'Západ slnka', query: 'sunset' },
-  { id: 'sky', label: 'Obloha', query: 'sky clouds' },
-  { id: 'flowers', label: 'Kvety', query: 'flowers meadow' },
-  { id: 'autumn', label: 'Jeseň', query: 'autumn' },
-  { id: 'snow', label: 'Zima', query: 'snow winter' },
-  { id: 'city', label: 'Mesto', query: 'city skyline' },
-  { id: 'space', label: 'Vesmír', query: 'galaxy nebula' },
-  { id: 'animals', label: 'Zvieratá', query: 'wildlife' },
+  { id: 'landscape', get label() { return t('photo.topic.landscape'); }, query: 'landscape' },
+  { id: 'mountain', get label() { return t('photo.topic.mountain'); }, query: 'mountain' },
+  { id: 'sea', get label() { return t('photo.topic.sea'); }, query: 'sea beach' },
+  { id: 'forest', get label() { return t('photo.topic.forest'); }, query: 'forest' },
+  { id: 'sunset', get label() { return t('photo.topic.sunset'); }, query: 'sunset' },
+  { id: 'sky', get label() { return t('photo.topic.sky'); }, query: 'sky clouds' },
+  { id: 'flowers', get label() { return t('photo.topic.flowers'); }, query: 'flowers meadow' },
+  { id: 'autumn', get label() { return t('photo.topic.autumn'); }, query: 'autumn' },
+  { id: 'snow', get label() { return t('photo.topic.snow'); }, query: 'snow winter' },
+  { id: 'city', get label() { return t('photo.topic.city'); }, query: 'city skyline' },
+  { id: 'space', get label() { return t('photo.topic.space'); }, query: 'galaxy nebula' },
+  { id: 'animals', get label() { return t('photo.topic.animals'); }, query: 'wildlife' },
 ];
 
 export interface Photo {

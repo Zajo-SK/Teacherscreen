@@ -1,0 +1,16 @@
+export const w2f = {
+  'w.embed.label': 'Webstránka',
+  'w.embed.desc': 'Vloží webovú stránku (HTTPS) priamo na tabuľu.',
+  'w.embed.url': 'Adresa stránky (HTTPS)',
+  'w.embed.title': 'Názov (voliteľný)',
+  'w.embed.hint': 'Niektoré stránky vloženie zakazujú – vtedy použite tlačidlo na otvorenie v novej karte.',
+  'w.embed.load': 'Načítať stránku',
+  'w.embed.note': 'Stránka sa načíta z internetu až po kliknutí.',
+  'w.embed.aria': 'Vložená stránka: {title}',
+  'w.embed.openTab': 'Otvoriť v novej karte',
+  'w.embed.control': 'Ovládať stránku',
+  'w.embed.moveMode': 'Presúvať widget',
+  'w.embed.err.empty': 'Vložte adresu stránky v nastaveniach.',
+  'w.embed.err.invalid': 'Povolené sú len adresy HTTPS (napr. https://example.org).',
+  'w.embed.err.long': 'Adresa je príliš dlhá.',
+} as const;

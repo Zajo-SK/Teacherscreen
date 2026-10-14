@@ -57,6 +57,16 @@ export function isFreeLicense(license: string): boolean {
   return ALLOWED_LICENSE.test(l) && !BLOCKED.test(l);
 }
 
+/** Povolí iba HTTPS adresy z domén Wikimedie (upload.wikimedia.org a pod.). */
+export function isWikimediaUrl(u: string): boolean {
+  try {
+    const url = new URL(u, 'https://upload.wikimedia.org');
+    return url.protocol === 'https:' && /(^|\.)wikimedia\.org$/.test(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 export function stripHtml(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html');
   return (doc.body.textContent ?? '').replace(/\s+/g, ' ').trim();
@@ -102,8 +112,9 @@ export function parsePhotoResponse(data: ApiResponse): PhotoPage {
       stats.license++;
       continue;
     }
-    if (!/^https:\/\/upload\.wikimedia\.org\//.test(info.thumburl)) {
+    if (!isWikimediaUrl(info.thumburl)) {
       stats.url++;
+      if (stats.sampleLicenses.length < 8) stats.sampleLicenses.push(`url:${info.thumburl.slice(0, 40)}`);
       continue;
     }
     const author = stripHtml(info.extmetadata?.Artist?.value ?? '').slice(0, 80) || 'Wikimedia Commons';
@@ -138,7 +149,7 @@ async function fullUrl(title: string, signal?: AbortSignal): Promise<string> {
   const data = (await res.json()) as ApiResponse;
   const info = data.query?.pages?.[0]?.imageinfo?.[0];
   const url = info?.thumburl ?? info?.url;
-  if (!url || !/^https:\/\/upload\.wikimedia\.org\//.test(url)) throw new Error('no-url');
+  if (!url || !isWikimediaUrl(url)) throw new Error('no-url');
   return url;
 }
 

@@ -59,6 +59,9 @@ tests/unit, tests/e2e      automatizované testy
 * **Knižnica pozadí:** 36 originálnych ilustrácií (prelievanie, vlny, tvary, krajina, vzory, školské) vo výbere pozadia obrazovky (panel vpravo, keď nie je vybraný žiadny widget). Generujú sa v kóde ako SVG (`src/lib/backgrounds.ts`) – bez licenčných obmedzení, bez sťahovania z internetu, fungujú offline a obrazovka nesie len ID.
 * **Fotky z internetu:** v tom istom paneli tlačidlo *Fotky z internetu* – vybrané fotografie z Wikimedia Commons (kategória „Featured pictures“, iba voľné licencie CC0 / verejná doména / CC BY / CC BY‑SA, bez NC/ND) podľa tém (krajina, hory, more…). Nepotrebuje kľúč; vyžaduje internet. Vybraná fotka sa zmenší na 1920 px a uloží do obrazovky (funguje potom offline) a pri CC BY(-SA) sa v rohu zobrazuje autor a licencia. Dopyty idú priamo z prehliadača na wikimedia.org. Vyhľadávanie a CORS som overil len na simulovanej odpovedi (z vývojového prostredia nie je prístup na internet) – pozri obmedzenia.
 * **Nastavenia widgetu:** vyberte widget a kliknite na **Nastavenia** v lište nad plochou alebo na modré koliesko priamo na widgete. Bez vybraného widgetu panel nastavuje pozadie a pomer strán.
+* **Roll‑up menu:** kategórie widgetov vľavo a sekcie panelu vpravo (nastavenia, farby, poloha, pozadie…) sa dajú zbaliť; stav sa pamätá.
+* **Tvorca skupín:** pri každej triede (alebo widgete) sa dajú nastaviť pravidlá „nesmú byť spolu“ a „musia byť spolu“; po rozdelení možno žiakov presúvať ťahaním (myš, prst) alebo šípkami vľavo/vpravo, porušenie pravidla sa zvýrazní. Ak sa pravidlá nedajú splniť, aplikácia to oznámi (pri väčších skupinách upozorní, že nie sú rovnako veľké).
+* **Náhodné číslo:** nový widget – rozsah, počet čísel naraz, voliteľne bez opakovania.
 * **Popisky ikon:** pri nabehnutí myšou, pri fokuse klávesnicou aj pri dlhom stlačení prstom sa zobrazí, čo ikona robí.
 * **Úvodná prehliadka:** raz pre každého používateľa na domovskej stránke a v editore; znova ju spustíte v Nastaveniach.
 
@@ -81,7 +84,7 @@ Učiteľ sa registruje **prezývkou (nick) a heslom** – bez e‑mailu. Po prih
 Bez konfigurácie sa žiadne cloudové prvky nezobrazujú a knižnica Supabase sa ani nestiahne.
 
 1. Na supabase.com vytvorte (bezplatný) projekt.
-2. V *SQL Editor* spustite postupne `supabase/migrations/0001_init.sql`, `0002_class_lists.sql` a `0003_admin.sql`.
+2. V *SQL Editor* spustite postupne `supabase/migrations/0001_init.sql`, `0002_class_lists.sql`, `0003_admin.sql` a `0004_class_rules.sql` (pravidlá skupín v cloude; bez nej sa pravidlá synchronizujú len lokálne).
 3. *Authentication → Providers → Email*: ponechajte zapnuté, ale **vypnite „Confirm email“** (prezývka nemá skutočný e‑mail, nič sa nikam neposiela).
 4. *Project Settings → API*: skopírujte *Project URL* a verejný kľúč *anon*.
    * lokálne: `.env` podľa `.env.example` (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`);

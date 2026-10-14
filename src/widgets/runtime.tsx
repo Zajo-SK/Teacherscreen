@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { ClassList, WidgetInstance } from '@/types';
+import type { ClassList, GroupRules, WidgetInstance } from '@/types';
 
 /** Informácie o okolí widgetu (nastavenia aplikácie, ostatné widgety na obrazovke). Widgety tak nezávisia od store. */
 export interface WidgetRuntime {
@@ -10,7 +10,7 @@ export interface WidgetRuntime {
   widgets: WidgetInstance[];
   /** Uložené triedy (zoznamy žiakov) učiteľa. */
   classes: ClassList[];
-  saveClass: (c: { id?: string; name: string; names: string[] }) => string;
+  saveClass: (c: { id?: string; name: string; names: string[]; rules?: GroupRules }) => string;
   patchConfig: (id: string, patch: Record<string, unknown>) => void;
   patchGeometry: (id: string, patch: { w?: number; h?: number }) => void;
 }

@@ -1,6 +1,6 @@
 import { expect, test } from './fixtures';
 import { readFileSync } from 'node:fs';
-import { addWidget, dragBy, newScreen, openApp, PNG_2x1, rectOf, stageScale, waitSaved, widget } from './helpers';
+import { addWidget, dragBy, newScreen, openApp, openSection, PNG_2x1, rectOf, stageScale, waitSaved, widget } from './helpers';
 
 test.describe('akceptačné scenáre', () => {
   test('1–4: otvorenie bez registrácie, nová obrazovka, 5 widgetov, presun, zmena veľkosti, nastavenia', async ({ page }) => {
@@ -44,6 +44,7 @@ test.describe('akceptačné scenáre', () => {
     await inspector.getByLabel('Veľkosť písma').fill('60');
 
     // zmena farby pozadia
+    await openSection(page, 'w-colors');
     await inspector.getByRole('button', { name: '#fef08a' }).first().click();
     await expect(text).toHaveCSS('background-color', 'rgb(254, 240, 138)');
 

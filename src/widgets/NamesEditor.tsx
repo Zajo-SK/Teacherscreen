@@ -109,8 +109,8 @@ export function ClassPicker({
         <p className="text-xs text-muted">{t('classes.linkedHint')}</p>
       ) : (
         hasNames && (
-          <div className="flex gap-2">
-            <input className="input" value={name} maxLength={80} placeholder={t('classes.namePlaceholder')} aria-label={t('classes.namePlaceholder')} onChange={(e) => setName(e.target.value)} />
+          <div className="flex flex-wrap gap-2">
+            <input className="input min-w-0 flex-1 basis-40" value={name} maxLength={80} placeholder={t('classes.namePlaceholder')} aria-label={t('classes.namePlaceholder')} onChange={(e) => setName(e.target.value)} />
             <button
               type="button"
               className="btn"

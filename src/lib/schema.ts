@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   CANVAS_SIZES,
   type ClassList,
+  type GroupRules,
   DEFAULT_BACKGROUND,
   SCHEMA_VERSION,
   type AspectId,
@@ -149,12 +150,25 @@ export function sanitizeDeck(raw: unknown): Deck | null {
   return { id: r.id.slice(0, 64), name: text(r.name, 120, 'Zostava') || 'Zostava', createdAt: num(r.createdAt, now), updatedAt: num(r.updatedAt, now) };
 }
 
+export function sanitizeRules(raw: unknown): GroupRules {
+  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+  const pairs = (v: unknown): [string, string][] =>
+    (Array.isArray(v) ? v : [])
+      .filter((p): p is [unknown, unknown] => Array.isArray(p) && p.length === 2 && typeof p[0] === 'string' && typeof p[1] === 'string')
+      .map((p) => [String(p[0]).trim().slice(0, 60), String(p[1]).trim().slice(0, 60)] as [string, string])
+      .filter(([a, b]) => a && b && a !== b)
+      .slice(0, 100);
+  return { apart: pairs(r.apart), together: pairs(r.together) };
+}
+
 export function sanitizeClass(raw: unknown): ClassList | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
   if (typeof r.id !== 'string' || !r.id) return null;
   const names = Array.isArray(r.names) ? r.names.filter((n): n is string => typeof n === 'string').map((n) => n.trim().slice(0, 60)).filter(Boolean).slice(0, 200) : [];
-  return { id: r.id.slice(0, 64), name: text(r.name, 80, 'Trieda') || 'Trieda', names, updatedAt: num(r.updatedAt, Date.now()) };
+  const rules = sanitizeRules(r.rules);
+  const hasRules = rules.apart.length + rules.together.length > 0;
+  return { id: r.id.slice(0, 64), name: text(r.name, 80, 'Trieda') || 'Trieda', names, ...(hasRules ? { rules } : {}), updatedAt: num(r.updatedAt, Date.now()) };
 }
 
 // ---------------------------------------------------------------- export / import súborov

@@ -8,7 +8,6 @@ import { importPhoto, PHOTO_TOPICS, searchPhotos, type Photo, type PhotoStats } 
 export function PhotoBrowser({ screenId }: { screenId: string }) {
   const setBackground = useApp((s) => s.setBackground);
   const toast = useApp((s) => s.toast);
-  const [open, setOpen] = useState(false);
   const [topic, setTopic] = useState(PHOTO_TOPICS[0]!.id);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [next, setNext] = useState<number | null>(null);
@@ -48,9 +47,9 @@ export function PhotoBrowser({ screenId }: { screenId: string }) {
   }, []);
 
   useEffect(() => {
-    if (open) void load(topic, 0, false);
+    void load(topic, 0, false);
     return () => abort.current?.abort();
-  }, [open, topic, load]);
+  }, [topic, load]);
 
   const choose = async (p: Photo) => {
     setApplying(p.title);
@@ -68,11 +67,8 @@ export function PhotoBrowser({ screenId }: { screenId: string }) {
 
   return (
     <div className="mb-4" data-testid="photo-browser">
-      <button type="button" className="btn w-full" aria-expanded={open} onClick={() => setOpen(!open)}>
-        📷 {t('bg.photos')}
-      </button>
-      {open && (
-        <div className="mt-2">
+      {(
+        <div>
           <p className="mb-2 text-xs text-muted">{t('bg.photosNote')}</p>
           <div className="mb-2 flex flex-wrap gap-1" role="tablist" aria-label={t('bg.photos')}>
             {PHOTO_TOPICS.map((x) => (

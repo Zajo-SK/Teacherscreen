@@ -25,6 +25,7 @@ export type WidgetType =
   | 'steps'
   | 'poll'
   | 'draw'
+  | 'number'
   | 'visual-timer';
 
 export interface WidgetColors {
@@ -79,11 +80,19 @@ export interface Deck {
   updatedAt: number;
 }
 
+/** Pravidlá triedy: dvojice žiakov, ktorí NESMÚ byť v jednej skupine, a dvojice, ktorí MUSIA byť spolu (podľa mien). */
+export interface GroupRules {
+  apart: [string, string][];
+  together: [string, string][];
+}
+
 /** Zoznam žiakov jednej triedy. Ukladá sa lokálne; do cloudu iba ak to učiteľ výslovne zapne. */
 export interface ClassList {
   id: string;
   name: string;
   names: string[];
+  /** Pravidlá pre rozdeľovač skupín (voliteľné). */
+  rules?: GroupRules;
   updatedAt: number;
 }
 

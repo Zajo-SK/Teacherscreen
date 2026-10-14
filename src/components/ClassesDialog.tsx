@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { ConfirmDialog, Modal } from './ui';
 import { NamesEditor } from '@/widgets/NamesEditor';
+import { RulesEditor } from '@/widgets/RulesEditor';
+import { emptyRules } from '@/lib/groups';
 import { t } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import { useCloud } from '@/backend/useCloud';
@@ -55,6 +57,7 @@ export function ClassesDialog({ open, onClose }: { open: boolean; onClose: () =>
                 </button>
               </div>
               <NamesEditor names={cur.names} onChange={(names) => saveClass({ id: cur.id, name: cur.name, names })} />
+              <RulesEditor names={cur.names} rules={cur.rules ?? emptyRules()} onChange={(rules) => saveClass({ id: cur.id, name: cur.name, names: cur.names, rules })} />
             </>
           ) : (
             <p className="text-sm text-muted">{t('classes.select')}</p>

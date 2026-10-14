@@ -33,7 +33,8 @@ export type WidgetType =
   | 'noise'
   | 'symbols'
   | 'sticker'
-  | 'link';
+  | 'link'
+  | 'video';
 
 export interface WidgetColors {
   /** CSS farba pozadia widgetu; undefined = predvolená podľa témy. */

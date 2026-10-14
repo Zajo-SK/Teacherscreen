@@ -68,7 +68,7 @@ test.describe('akceptačné scenáre', () => {
     await page.getByRole('button', { name: /Pridať obrazovku/ }).click();
     await expect(page.locator('[data-widget-type]')).toHaveCount(0);
     await page.clock.fastForward(60_000);
-    await page.getByRole('button', { name: /1\. Prvá/ }).click();
+    await page.getByRole('button', { name: 'Predošlá obrazovka' }).click();
     await expect(page.getByTestId('timer-display')).toHaveText('03:30');
 
     // pauza zastaví čas
@@ -154,7 +154,7 @@ test.describe('akceptačné scenáre', () => {
     await addWidget(page, 'clock');
     await page.getByRole('button', { name: /Pridať obrazovku/ }).click();
     await addWidget(page, 'timer');
-    await page.getByRole('button', { name: /1\. / }).click();
+    await page.getByRole('button', { name: 'Predošlá obrazovka' }).click();
     await page.getByTestId('present-btn').click();
     await expect(page.getByTestId('present-root')).toBeVisible();
     await expect(page.getByTestId('add-text')).toHaveCount(0);
@@ -259,6 +259,7 @@ test.describe('akceptačné scenáre', () => {
     }
     // pomer strán
     await page.setViewportSize({ width: 1440, height: 900 });
+    await page.getByTestId('inspector-toggle').click();
     await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
     await page.getByLabel('Pomer strán').selectOption('4:3');
     const after = await rects();
@@ -349,6 +350,7 @@ test.describe('akceptačné scenáre', () => {
     await page.reload();
     await expect(widget(page, 'groups')).toContainText('Skupina 1');
     // druhá trieda použitá v inom widgete tej istej obrazovky
+    await page.getByTestId('inspector-toggle').click();
     await addWidget(page, 'picker');
     await page.getByTestId('inspector').getByLabel('Trieda').selectOption({ label: '7.B (4)' });
     await expect(widget(page, 'picker')).toContainText('Zostáva 4 z 4');

@@ -37,7 +37,7 @@ src/
   store/useApp.ts          stav aplikácie, história (späť/znova), schránka, akcie
   storage/                 IndexedDB adaptér, záložné úložisko v pamäti, automatické ukladanie
   components/Stage.tsx     pracovná plocha (škálovanie, presun, zmena veľkosti, výber)
-  editor/                  paleta, panel vlastností, nástroje výberu, filmstrip, skratky
+  editor/                  spodná lišta widgetov (WidgetBar), prepínač plôch, panel vlastností, nástroje výberu, filmstrip, skratky
   pages/                   Home, Editor, Present
   backend/                 voliteľný Supabase klient, účty, zdieľanie, administrácia
   i18n/                    slovenčina + mechanizmus na doplnenie ďalších jazykov

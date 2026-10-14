@@ -7,17 +7,12 @@ export async function openApp(page: Page) {
   await expect(page.getByTestId('new-screen')).toBeVisible();
 }
 
-export async function newScreen(page: Page) {
+/** Vytvorí novú obrazovku; panel vlastností je v editore predvolene zatvorený, testy ho zvyčajne otvoria. */
+export async function newScreen(page: Page, openInspector = true) {
   await page.getByTestId('new-screen').click();
   await expect(page.getByTestId('stage')).toBeVisible();
+  if (openInspector) await page.getByTestId('inspector-toggle').click();
 }
-
-const CATEGORY: Record<string, string> = {
-  text: 'content', image: 'content', qr: 'content', steps: 'content',
-  clock: 'time', timer: 'time', 'visual-timer': 'time', stopwatch: 'time',
-  traffic: 'class', picker: 'class', groups: 'class', scoreboard: 'class', poll: 'class',
-  dice: 'tools', number: 'tools', draw: 'tools',
-};
 
 /** Otvorí zbaliteľnú sekciu (ak je zbalená). */
 export async function openSection(page: Page, id: string) {
@@ -29,7 +24,8 @@ export async function openSection(page: Page, id: string) {
 export async function addWidget(page: Page, type: string) {
   const n = await page.locator(`[data-widget-type="${type}"]`).count();
   const tile = page.getByTestId(`add-${type}`);
-  if (!(await tile.isVisible())) await openSection(page, `palette-${CATEGORY[type]}`);
+  const inMore = !(await tile.isVisible());
+  if (inMore) await page.getByTestId('bar-more-btn').click();
   await tile.click();
   await expect(page.locator(`[data-widget-type="${type}"]`)).toHaveCount(n + 1);
 }

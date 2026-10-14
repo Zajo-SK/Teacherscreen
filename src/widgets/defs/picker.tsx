@@ -8,12 +8,14 @@ import { bool, nullableStr, str, strList } from '../fields';
 import { useRuntime } from '../runtime';
 import { ClassPicker, NamesEditor } from '../NamesEditor';
 import { useStudentNames } from '../studentNames';
+import { AttendancePanel, AttendanceSettings } from '../AttendancePanel';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
 
 
 const schema = z.object({
   names: strList(200, 60),
   classId: nullableStr,
+  absent: strList(200, 70),
   picked: strList(200, 60),
   current: str('', 60),
   excludePicked: bool(true),
@@ -42,10 +44,11 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
   const timers = useRef<number[]>([]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
-  const { names } = useStudentNames(config, update);
-  const remaining = remainingNames(names, config.picked);
-  const pool = config.excludePicked ? remaining : names;
-  const empty = names.length === 0;
+  const { names, active, absent, setAbsent } = useStudentNames(config, update);
+  const [panel, setPanel] = useState(false);
+  const remaining = remainingNames(active, config.picked);
+  const pool = config.excludePicked ? remaining : active;
+  const empty = active.length === 0;
   const exhausted = !empty && pool.length === 0;
 
   const finish = (name: string) => {
@@ -72,14 +75,14 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
 
   const display = spinning ? shown : config.current;
   return (
-    <div className="widget-body" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3cqh', padding: 20, boxSizing: 'border-box', textAlign: 'center' }}>
+    <div className="widget-body" style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3cqh', padding: 20, boxSizing: 'border-box', textAlign: 'center' }}>
       <div
         aria-live="polite"
         data-testid="picker-result"
         style={{ fontSize: 'min(11cqw, 28cqh)', fontWeight: 800, lineHeight: 1.1, overflowWrap: 'anywhere', minHeight: '1.2em' }}
         className={spinning ? '' : display ? 'ts-pop' : ''}
       >
-        {empty ? <span className="wmuted" style={{ fontSize: '0.45em', fontWeight: 600 }}>{t('w.picker.empty')}</span> : display || <span className="wmuted">?</span>}
+        {empty ? <span className="wmuted" style={{ fontSize: '0.45em', fontWeight: 600 }}>{names.length > 0 ? t('att.noneActive') : t('w.picker.empty')}</span> : display || <span className="wmuted">?</span>}
       </div>
       {exhausted && <div style={{ fontSize: 'min(4.5cqw, 7cqh)' }}>{t('w.picker.exhausted')}</div>}
       <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }} data-no-drag>
@@ -91,12 +94,18 @@ function PickerWidget({ config, update }: WidgetProps<Config>) {
             {t('w.picker.reset')}
           </button>
         )}
+        {names.length > 0 && (
+          <button type="button" className="wbtn" data-testid="attendance-open" aria-expanded={panel} data-tip={t('att.openTip')} onClick={() => setPanel(true)}>
+            👥 {t('att.open', { n: active.length, total: names.length })}
+          </button>
+        )}
       </div>
       {!empty && (
         <div className="wmuted" style={{ fontSize: 'min(3.6cqw, 6cqh)' }}>
-          {t('w.picker.remaining', { n: remaining.length, total: names.length })}
+          {t('w.picker.remaining', { n: remaining.length, total: active.length })}
         </div>
       )}
+      {panel && <AttendancePanel names={names} absent={absent} onChange={setAbsent} onClose={() => setPanel(false)} />}
     </div>
   );
 }
@@ -107,6 +116,7 @@ function Settings({ config, update }: SettingsProps<Config>) {
     <>
       <ClassPicker classes={sn.classes} classId={config.classId} hasNames={config.names.length > 0} onPick={sn.pickClass} onSave={sn.saveAsClass} />
       <NamesEditor names={sn.names} onChange={sn.setNames} />
+      <AttendanceSettings names={sn.names} absent={sn.absent} onChange={sn.setAbsent} />
       <Toggle label={t('w.picker.exclude')} checked={config.excludePicked} onChange={(excludePicked) => update({ excludePicked })} />
       <Toggle label={t('w.picker.animate')} checked={config.animate} onChange={(animate) => update({ animate })} />
       <p className="text-sm text-muted">{t('w.picker.privacy')}</p>
@@ -126,6 +136,6 @@ export const pickerWidget: WidgetDefinition<Config> = {
   Component: PickerWidget,
   Settings,
   hasStudentData: true,
-  stripStudentData: (c) => ({ ...c, names: [], picked: [], current: '' }), // classId ostáva – je to len odkaz, nie mená
+  stripStudentData: (c) => ({ ...c, names: [], absent: [], picked: [], current: '' }), // classId ostáva – je to len odkaz, nie mená
 };
 

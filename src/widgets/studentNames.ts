@@ -1,11 +1,14 @@
 import type { ClassList, GroupRules } from '@/types';
 import { emptyRules } from '@/lib/groups';
+import { activeNames, normalizeAbsent } from '@/lib/attendance';
 import { useRuntime } from './runtime';
 
 interface HasNames {
   names: string[];
   classId: string | null;
   rules?: GroupRules;
+  /** Jednorazovo neprítomní žiaci (preskočia sa). */
+  absent?: string[];
 }
 
 /**
@@ -17,8 +20,15 @@ export function useStudentNames(config: HasNames, update: (p: Record<string, unk
   const cls: ClassList | undefined = config.classId ? rt.classes.find((c) => c.id === config.classId) : undefined;
   const names = cls ? cls.names : config.names;
   const rules: GroupRules = (cls ? cls.rules : config.rules) ?? emptyRules();
+  const absent = config.absent ?? [];
   return {
     names,
+    absent,
+    /** Mená prítomných žiakov – z nich sa losuje a delí. */
+    active: activeNames(names, absent),
+    setAbsent(a: string[]) {
+      update({ absent: normalizeAbsent(names, a) });
+    },
     rules,
     cls,
     classes: rt.classes,
@@ -32,7 +42,7 @@ export function useStudentNames(config: HasNames, update: (p: Record<string, unk
     },
     pickClass(id: string | null) {
       const c = id ? rt.classes.find((x) => x.id === id) : undefined;
-      update({ classId: c ? c.id : null, names: c ? c.names : config.names, ...resetPatch });
+      update({ classId: c ? c.id : null, names: c ? c.names : config.names, absent: [], ...resetPatch });
     },
     saveAsClass(name: string) {
       const id = rt.saveClass({ name, names: config.names, rules: config.rules });

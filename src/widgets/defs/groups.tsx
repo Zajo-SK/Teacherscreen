@@ -8,6 +8,7 @@ import { moveStudent, ruleViolations, splitWithRules, verifyPartition } from '@/
 import { int, nullableStr, oneOf, strList } from '../fields';
 import { ClassPicker, NamesEditor } from '../NamesEditor';
 import { RulesEditor } from '../RulesEditor';
+import { AttendancePanel, AttendanceSettings } from '../AttendancePanel';
 import { useStudentNames } from '../studentNames';
 import { useRuntime } from '../runtime';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
@@ -16,6 +17,7 @@ const pair = z.tuple([z.string().transform((s) => s.slice(0, 60)), z.string().tr
 const schema = z.object({
   names: strList(200, 60),
   classId: nullableStr,
+  absent: strList(200, 70),
   rules: z
     .object({ apart: z.array(pair).max(100).catch([]), together: z.array(pair).max(100).catch([]) })
     .catch({ apart: [], together: [] }),
@@ -44,7 +46,8 @@ interface DragState {
 
 function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
   const rt = useRuntime();
-  const { names, rules } = useStudentNames(config, update);
+  const { names: allNames, active: names, absent, setAbsent, rules } = useStudentNames(config, update);
+  const [panel, setPanel] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'error' | 'info'; text: string } | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const dragRef = useRef<DragState | null>(null);
@@ -59,7 +62,9 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
   const stale = config.result.length > 0 && !ok;
   const violations = useMemo(() => ruleViolations(config.result, rules), [config.result, rules]);
   const run = () => {
-    const r = splitWithRules(names, config.mode, config.value, rules);
+    const present = new Set(names);
+    const activeRules = { apart: rules.apart.filter(([a, b]) => present.has(a) && present.has(b)), together: rules.together.filter(([a, b]) => present.has(a) && present.has(b)) };
+    const r = splitWithRules(names, config.mode, config.value, activeRules);
     if (!r.ok) {
       setNotice({ kind: 'error', text: r.reason === 'conflict' ? t('w.groups.conflict', { pair: r.detail ?? '' }) : t('w.groups.noSolution') });
       return;
@@ -118,7 +123,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
   };
 
   return (
-    <div className="widget-body" style={{ display: 'flex', flexDirection: 'column', padding: 20, boxSizing: 'border-box', gap: 14 }}>
+    <div className="widget-body" style={{ position: 'relative', display: 'flex', flexDirection: 'column', padding: 20, boxSizing: 'border-box', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }} data-no-drag>
         <button type="button" className="wbtn wbtn-primary" onClick={run} disabled={empty}>
           <Users size={28} aria-hidden /> {config.result.length ? t('w.groups.again') : t('w.groups.split')}
@@ -128,9 +133,14 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
             <Plus size={26} aria-hidden />
           </button>
         )}
+        {allNames.length > 0 && (
+          <button type="button" className="wbtn" data-testid="attendance-open" aria-expanded={panel} data-tip={t('att.openTip')} onClick={() => setPanel(true)}>
+            👥 {t('att.open', { n: names.length, total: allNames.length })}
+          </button>
+        )}
         <span className="wmuted" style={{ fontSize: 26 }} data-testid="groups-status">
           {empty
-            ? t('w.groups.empty')
+            ? allNames.length > 0 ? t('att.noneActive') : t('w.groups.empty')
             : stale
               ? t('w.groups.stale')
               : config.result.length
@@ -222,6 +232,7 @@ function GroupsWidget({ widget, config, update }: WidgetProps<Config>) {
           </div>,
           document.body,
         )}
+      {panel && <AttendancePanel names={allNames} absent={absent} onChange={setAbsent} onClose={() => setPanel(false)} />}
     </div>
   );
 }
@@ -234,6 +245,7 @@ function Settings({ config, update }: SettingsProps<Config>) {
     <>
       <ClassPicker classes={sn.classes} classId={config.classId} hasNames={config.names.length > 0} onPick={sn.pickClass} onSave={sn.saveAsClass} />
       <NamesEditor names={sn.names} onChange={sn.setNames} />
+      <AttendanceSettings names={sn.names} absent={sn.absent} onChange={(a) => { sn.setAbsent(a); update({ result: [] }); }} />
       {pickers.length > 0 && !config.classId && (
         <button type="button" className="btn mb-3" onClick={() => update({ names: (pickers[0]!.config as { names: string[] }).names.slice(), result: [] })}>
           {t('w.groups.fromPicker')}
@@ -267,5 +279,5 @@ export const groupsWidget: WidgetDefinition<Config> = {
   Component: GroupsWidget,
   Settings,
   hasStudentData: true,
-  stripStudentData: (c) => ({ ...c, names: [], result: [], rules: { apart: [], together: [] } }),
+  stripStudentData: (c) => ({ ...c, names: [], absent: [], result: [], rules: { apart: [], together: [] } }),
 };

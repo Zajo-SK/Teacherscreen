@@ -50,4 +50,11 @@ test.describe('nové widgety', () => {
     await widget(page, 'video').getByTestId('video-load').click();
     await expect(widget(page, 'video').locator('iframe')).toHaveAttribute('src', /^https:\/\/www\.youtube-nocookie\.com\/embed\/dQw4w9WgXcQ\?.*start=30/);
   });
+
+  test('pdf: nový widget ukáže prázdny stav s výzvou na výber súboru', async ({ page }) => {
+    await openApp(page);
+    await newScreen(page);
+    await addWidget(page, 'pdf');
+    await expect(widget(page, 'pdf')).toContainText('Vyberte súbor PDF v nastaveniach widgetu.');
+  });
 });

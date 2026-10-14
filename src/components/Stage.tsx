@@ -81,6 +81,7 @@ const WidgetView = memo(function WidgetView({ widget, rect, mode, selected, scal
   const bg = widget.colors.bg;
   const fg = widget.colors.fg ?? (bg ? contrastText(bg) : undefined);
   const px = (n: number) => n / scale;
+  const frameless = !!def.frameless && !bg;
   const style: CSSProperties = {
     position: 'absolute',
     left: rect.x,
@@ -88,11 +89,11 @@ const WidgetView = memo(function WidgetView({ widget, rect, mode, selected, scal
     width: rect.w,
     height: rect.h,
     zIndex: widget.z + 1,
-    background: bg ?? 'var(--widget-bg)',
+    background: bg ?? (frameless ? 'transparent' : 'var(--widget-bg)'),
     color: fg ?? 'var(--widget-fg)',
     borderRadius: 24,
     overflow: 'hidden',
-    boxShadow: selected ? `0 0 0 ${px(4)}px var(--primary), 0 8px 24px rgba(0,0,0,.18)` : '0 6px 20px rgba(0,0,0,.16)',
+    boxShadow: selected ? `0 0 0 ${px(4)}px var(--primary)${frameless ? '' : ', 0 8px 24px rgba(0,0,0,.18)'}` : frameless ? 'none' : '0 6px 20px rgba(0,0,0,.16)',
     touchAction: edit ? 'none' : 'manipulation',
     cursor: edit && !widget.locked ? 'move' : 'default',
     userSelect: 'none',

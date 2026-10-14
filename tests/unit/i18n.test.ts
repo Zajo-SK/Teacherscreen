@@ -12,11 +12,11 @@ describe('i18n', () => {
   for (const code of LANG_CODES.filter((c) => c !== 'sk')) {
     it(`${code}: obsahuje všetky kľúče, zachováva {premenné}, nie sú prázdne`, async () => {
       const d = await LANGUAGES[code].load();
-      const missing = Object.keys(sk).filter((k) => !(k in d) || typeof (d as Record<string, string>)[k] !== 'string' || (d as Record<string, string>)[k].trim() === '');
+      const missing = Object.keys(sk).filter((k) => !(k in d) || typeof (d as Record<string, string>)[k] !== 'string' || (d as Record<string, string>)[k]?.trim() === '');
       expect(missing).toEqual([]);
       const extra = Object.keys(d).filter((k) => !(k in sk));
       expect(extra).toEqual([]);
-      const bad = Object.entries(sk).filter(([k, v]) => placeholders(v) !== placeholders((d as Record<string, string>)[k]!)).map(([k]) => k);
+      const bad = Object.entries(sk).filter(([k, v]) => placeholders(v) !== placeholders((d as Record<string, string>)[k] ?? '')).map(([k]) => k);
       expect(bad).toEqual([]);
     });
   }

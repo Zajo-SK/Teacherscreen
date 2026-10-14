@@ -125,3 +125,7 @@ Obmedzenia a nedokončené:
 * Synchronizujú sa plochy a (voliteľne) triedy; zostavy (poradie plôch) sa medzi zariadeniami nesynchronizujú. Pri súčasnej úprave v dvoch oknách toho istého prehliadača platí „posledný zapísal vyhráva“.
 * E2E testy bežia v Chromiu (vrátane emulácie iPadu a 4K); Firefox/Safari neboli v tomto prostredí k dispozícii.
 * Škálovanie písma widgetov je v jednotkách virtuálnej plochy; na malých telefónoch je aplikácia použiteľná, ale určená je pre tablety, notebooky a veľké obrazovky.
+
+## Jazyky
+
+Aplikácia je dostupná v slovenčine, angličtine, nemčine, češtine, maďarčine, poľštine a ruštine. Jazyk sa volí v **Nastaveniach → Jazyk** (pri prvom spustení sa použije jazyk prehliadača). Slovenčina je zdrojový jazyk (`src/i18n/sk/`); ostatné preklady (`src/i18n/langs/`) vznikli strojovo a odporúča sa ich kontrola rodeným hovorcom. Test `tests/unit/i18n.test.ts` hlási chýbajúce kľúče aj nesúlad `{premenných}`.

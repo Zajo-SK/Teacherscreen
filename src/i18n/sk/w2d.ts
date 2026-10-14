@@ -1,0 +1,16 @@
+export const w2d = {
+  'w.video.label': 'Video',
+  'w.video.desc': 'Prehrávač videa z YouTube podľa odkazu.',
+  'w.video.url': 'Odkaz na YouTube',
+  'w.video.title': 'Názov (voliteľný)',
+  'w.video.hint': 'Podporované sú odkazy youtube.com/watch, youtu.be, shorts a zoznamy skladieb. Čas začiatku (napr. ?t=90) sa zachová.',
+  'w.video.load': 'Načítať a prehrať video',
+  'w.video.note': 'Video sa načíta z YouTube až po kliknutí.',
+  'w.video.offline': 'Na prehranie videa je potrebný internet.',
+  'w.video.control': 'Ovládať video',
+  'w.video.moveMode': 'Presúvať widget',
+  'w.video.aria': 'Video: {title}',
+  'w.video.err.empty': 'Vložte odkaz na YouTube v nastaveniach.',
+  'w.video.err.invalid': 'Toto nie je platný odkaz na YouTube.',
+  'w.video.err.long': 'Odkaz je príliš dlhý.',
+} as const;

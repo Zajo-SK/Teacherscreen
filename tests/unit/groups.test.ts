@@ -211,3 +211,46 @@ describe('náhodné čísla', () => {
     expect(new Set(big).size).toBe(50);
   });
 });
+
+import { activeNames, isRowAbsent, normalizeAbsent, studentKey, toggleRow } from '@/lib/attendance';
+
+describe('neprítomní žiaci', () => {
+  const names = ['Anna', 'Peter', 'Anna', 'Eva'];
+  it('každý riadok (aj rovnaké meno) sa dá vypnúť zvlášť a activeNames zachová poradie', () => {
+    expect(activeNames(names, [])).toEqual(names);
+    expect(activeNames(names, ['Peter'])).toEqual(['Anna', 'Anna', 'Eva']);
+    const second = toggleRow(names, [], 2); // druhá Anna
+    expect(isRowAbsent(names, second, 2)).toBe(true);
+    expect(isRowAbsent(names, second, 0)).toBe(false);
+    expect(activeNames(names, second)).toEqual(['Anna', 'Peter', 'Eva']);
+    const both = toggleRow(names, second, 0);
+    expect(activeNames(names, both)).toEqual(['Peter', 'Eva']);
+  });
+  it('toggleRow je vratný a mimo rozsahu nič nemení', () => {
+    let absent = toggleRow(names, [], 1);
+    expect(absent).toEqual(['Peter']);
+    absent = toggleRow(names, absent, 1);
+    expect(absent).toEqual([]);
+    expect(toggleRow(names, ['Peter'], 99)).toEqual(['Peter']);
+    expect(toggleRow(names, ['Peter'], -1)).toEqual(['Peter']);
+  });
+  it('normalizeAbsent zahodí žiakov, ktorí už v zozname nie sú', () => {
+    expect(normalizeAbsent(['A', 'B'], ['A', 'Z', 'A'])).toEqual(['A']);
+    expect(normalizeAbsent(['A', 'A'], [studentKey(['A', 'A'], 1)])).toHaveLength(1);
+    expect(normalizeAbsent(['A'], [studentKey(['A', 'A'], 1)])).toEqual([]);
+  });
+  it('delenie len prítomných: nikto neprítomný sa neobjaví a každý prítomný je práve raz', () => {
+    const all = Array.from({ length: 20 }, (_, i) => `Ž${i + 1}`);
+    const absent = ['Ž3', 'Ž7', 'Ž8', 'Ž20'];
+    const act = activeNames(all, absent);
+    for (let i = 0; i < 50; i++) {
+      const r = splitWithRules(act, 'count', 4, emptyRules());
+      expect(r.ok).toBe(true);
+      if (r.ok) {
+        expect(verifyPartition(act, r.groups)).toBe(true);
+        expect(r.groups.flat().some((n) => absent.includes(n))).toBe(false);
+        expect(r.groups.flat()).toHaveLength(16);
+      }
+    }
+  });
+});

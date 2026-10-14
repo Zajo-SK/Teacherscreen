@@ -61,6 +61,7 @@ tests/unit, tests/e2e      automatizované testy
 * **Nastavenia widgetu:** vyberte widget a kliknite na **Nastavenia** v lište nad plochou alebo na modré koliesko priamo na widgete. Bez vybraného widgetu panel nastavuje pozadie a pomer strán.
 * **Roll‑up menu:** kategórie widgetov vľavo a sekcie panelu vpravo (nastavenia, farby, poloha, pozadie…) sa dajú zbaliť; stav sa pamätá.
 * **Tvorca skupín:** pri každej triede (alebo widgete) sa dajú nastaviť pravidlá „nesmú byť spolu“ a „musia byť spolu“; po rozdelení možno žiakov presúvať ťahaním (myš, prst) alebo šípkami vľavo/vpravo, porušenie pravidla sa zvýrazní. Ak sa pravidlá nedajú splniť, aplikácia to oznámi (pri väčších skupinách upozorní, že nie sú rovnako veľké).
+* **Neprítomní žiaci:** vo widgetoch Náhodný výber a Rozdeľovač skupín je tlačidlo **👥 Prítomní n/m** (a rovnaká sekcia v nastaveniach) s posuvníkmi pre každého žiaka. Vypnutý žiak sa preskočí pri losovaní a delení; zoznam triedy sa nemení a stav platí len pre daný widget (tlačidlo „Všetci prítomní“ ho vymaže).
 * **Náhodné číslo:** nový widget – rozsah, počet čísel naraz, voliteľne bez opakovania.
 * **Popisky ikon:** pri nabehnutí myšou, pri fokuse klávesnicou aj pri dlhom stlačení prstom sa zobrazí, čo ikona robí.
 * **Úvodná prehliadka:** raz pre každého používateľa na domovskej stránke a v editore; znova ju spustíte v Nastaveniach.

@@ -256,3 +256,48 @@ describe('triedy vo widgetoch', () => {
     expect(shown.sort()).toEqual(['Jana', 'Karol', 'Ľuboš'].sort());
   });
 });
+
+describe('neprítomní žiaci vo widgetoch', () => {
+  it('Náhodný výber nikdy nevyberie neprítomného a počítadlo ráta len prítomných', async () => {
+    const user = userEvent.setup();
+    render(<WidgetHarness type="picker" config={{ names: ['Anna', 'Peter', 'Eva', 'Jakub'], absent: ['Peter', 'Jakub'], animate: false, excludePicked: true }} />);
+    expect(screen.getByText(/Zostáva 2 z 2/)).toBeInTheDocument();
+    const seen: string[] = [];
+    for (let i = 0; i < 2; i++) {
+      await user.click(screen.getByRole('button', { name: /vybrať žiaka/i }));
+      seen.push(screen.getByTestId('picker-result').textContent!);
+    }
+    expect(seen.sort()).toEqual(['Anna', 'Eva']);
+    expect(screen.getByText(/všetci už boli vybraní/i)).toBeInTheDocument();
+  });
+  it('panel „Kto je dnes tu“ prepína prítomnosť a mení zostatok', async () => {
+    const user = userEvent.setup();
+    render(<WidgetHarness type="picker" config={{ names: ['Anna', 'Peter', 'Eva'], animate: false }} />);
+    await user.click(screen.getByTestId('attendance-open'));
+    expect(screen.getByTestId('attendance-count')).toHaveTextContent('prítomní 3 z 3');
+    await user.click(screen.getByRole('switch', { name: 'Peter: prítomný' }));
+    expect(screen.getByTestId('attendance-count')).toHaveTextContent('prítomní 2 z 3');
+    expect(screen.getByRole('switch', { name: 'Peter: neprítomný' })).toHaveAttribute('aria-checked', 'false');
+    await user.click(screen.getByRole('button', { name: 'Všetci prítomní' }));
+    expect(screen.getByTestId('attendance-count')).toHaveTextContent('prítomní 3 z 3');
+    await user.click(screen.getByRole('button', { name: 'Hotovo' }));
+    expect(screen.queryByTestId('attendance-panel')).toBeNull();
+  });
+  it('Rozdeľovač skupín rozdelí iba prítomných', async () => {
+    const user = userEvent.setup();
+    const list = Array.from({ length: 10 }, (_, i) => `N${i + 1}`);
+    render(<WidgetHarness type="groups" config={{ names: list, absent: ['N2', 'N5', 'N9'], mode: 'count', value: 2 }} />);
+    await user.click(screen.getByRole('button', { name: /rozdeliť do skupín/i }));
+    const shown = screen.getAllByRole('listitem').map((l) => l.textContent!.replace(' ⚠', ''));
+    expect(shown.sort()).toEqual(list.filter((n) => !['N2', 'N5', 'N9'].includes(n)).sort());
+    expect(screen.getByText(/7 žiakov, každý práve raz/)).toBeInTheDocument();
+  });
+  it('keď sú všetci neprítomní, nedá sa losovať ani deliť', () => {
+    const { unmount } = render(<WidgetHarness type="picker" config={{ names: ['A', 'B'], absent: ['A', 'B'] }} />);
+    expect(screen.getByRole('button', { name: /vybrať žiaka/i })).toBeDisabled();
+    expect(screen.getByText(/označení ako neprítomní/i)).toBeInTheDocument();
+    unmount();
+    render(<WidgetHarness type="groups" config={{ names: ['A', 'B'], absent: ['A', 'B'] }} />);
+    expect(screen.getByRole('button', { name: /rozdeliť do skupín/i })).toBeDisabled();
+  });
+});

@@ -197,3 +197,59 @@ test.describe('Náhodné číslo', () => {
     await expect(w).not.toContainText('zostáva');
   });
 });
+
+test.describe('Neprítomní žiaci', () => {
+  test('posuvníkmi sa dajú žiaci jednorazovo vyradiť; delia sa len prítomní; „Všetci prítomní“ ich vráti', async ({ page }) => {
+    const inspector = await setupGroups(page, 3);
+    // v nastaveniach widgetu
+    const sw = inspector.getByTestId('attendance-settings');
+    await expect(sw).toContainText('prítomní 12 z 12');
+    for (const n of ['Žiak02', 'Žiak05', 'Žiak09']) await sw.getByRole('switch', { name: `${n}: prítomný` }).click();
+    await expect(sw).toContainText('prítomní 9 z 12');
+    await widget(page, 'groups').getByRole('button', { name: /Rozdeliť/ }).click();
+    const g = await groupsOf(page);
+    expect(g.flat().sort()).toEqual(NAMES.filter((n) => !['Žiak02', 'Žiak05', 'Žiak09'].includes(n)));
+    await expect(page.getByTestId('groups-status')).toContainText('9 žiakov, každý práve raz');
+
+    // priamo vo widgete (panel „Kto je dnes tu“)
+    await widget(page, 'groups').getByTestId('attendance-open').click();
+    const panel = widget(page, 'groups').getByTestId('attendance-panel');
+    await expect(panel.getByTestId('attendance-count')).toContainText('prítomní 9 z 12');
+    await panel.getByRole('switch', { name: 'Žiak05: neprítomný' }).click(); // vrátený späť
+    await expect(panel.getByTestId('attendance-count')).toContainText('prítomní 10 z 12');
+    await panel.getByRole('switch', { name: 'Žiak01: prítomný' }).click();
+    await panel.getByRole('button', { name: 'Hotovo' }).click();
+    await expect(page.getByTestId('groups-status')).toContainText('Zoznam sa zmenil'); // po zmene treba rozdeliť znova
+    await widget(page, 'groups').getByRole('button', { name: /Rozdeliť/ }).click();
+    const g2 = (await groupsOf(page)).flat().sort();
+    expect(g2).toEqual(NAMES.filter((n) => !['Žiak01', 'Žiak02', 'Žiak09'].includes(n)));
+
+    // stav prežije obnovenie stránky a dá sa vrátiť jedným tlačidlom
+    await waitSaved(page);
+    await page.reload();
+    await widget(page, 'groups').getByTestId('attendance-open').click();
+    await expect(widget(page, 'groups').getByTestId('attendance-count')).toContainText('prítomní 9 z 12');
+    await widget(page, 'groups').getByRole('button', { name: 'Všetci prítomní' }).click();
+    await expect(widget(page, 'groups').getByTestId('attendance-count')).toContainText('prítomní 12 z 12');
+  });
+
+  test('Náhodný výber žiaka preskakuje neprítomných', async ({ page }) => {
+    await openApp(page);
+    await newScreen(page);
+    await addWidget(page, 'picker');
+    const inspector = page.getByTestId('inspector');
+    await inspector.getByLabel(/Vložiť zoznam/).fill('Anna\nPeter\nEva');
+    await inspector.getByRole('button', { name: 'Nahradiť zoznam' }).click();
+    await inspector.getByTestId('attendance-settings').getByRole('switch', { name: 'Peter: prítomný' }).click();
+    const w = widget(page, 'picker');
+    await expect(w).toContainText('Zostáva 2 z 2');
+    const seen: string[] = [];
+    for (let i = 0; i < 2; i++) {
+      await w.getByRole('button', { name: 'Vybrať žiaka' }).click();
+      if (i === 0) await expect(w.getByRole('button', { name: 'Vybrať žiaka' })).toBeEnabled({ timeout: 8000 });
+      else await expect(w).toContainText('Všetci už boli vybraní', { timeout: 8000 });
+      seen.push((await w.getByTestId('picker-result').textContent())!.trim());
+    }
+    expect(seen.sort()).toEqual(['Anna', 'Eva']);
+  });
+});

@@ -88,7 +88,7 @@ export const widgets = {
   'w.groups.again': 'Rozdeliť znova',
   'w.groups.empty': 'Pridajte mená v nastaveniach widgetu.',
   'w.groups.stale': 'Zoznam sa zmenil – rozdeľte znova.',
-  'w.groups.verified': 'Skontrolované: {n} žiakov, každý práve raz ✓',
+  'w.groups.counts': 'Žiaci: {n} · Skupiny: {g}',
   'w.groups.summary': '{n} žiakov · {mode}',
   'w.groups.countN': '{n} skupín',
   'w.groups.sizeN': 'po {n} žiakov',

@@ -115,7 +115,7 @@ test.describe('akceptačné scenáre', () => {
       expect(shown.slice().sort()).toEqual(names);
       await expect(widget(page, 'groups').locator('section')).toHaveCount(4);
     }
-    await expect(widget(page, 'groups')).toContainText('každý práve raz');
+    await expect(widget(page, 'groups')).toContainText('Žiaci: 17 · Skupiny: 4');
   });
 
   test('8: export obrazovky do JSON a import späť', async ({ page }, testInfo) => {

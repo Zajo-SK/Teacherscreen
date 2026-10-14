@@ -111,12 +111,15 @@ test.describe('Tvorca skupín – pravidlá a presúvanie', () => {
     expect(from).not.toBe(to);
     const chip = widget(page, 'groups').locator('section').nth(from).getByRole('button', { name: 'Žiak01' });
     const target = widget(page, 'groups').locator('section').nth(to);
+    await chip.scrollIntoViewIfNeeded();
+    const area = (await widget(page, 'groups').getByTestId('groups-result').boundingBox())!;
     const cb = (await chip.boundingBox())!;
     const tb = (await target.boundingBox())!;
+    const ty = Math.min(Math.max(tb.y + 20, area.y + 10), area.y + area.height - 10);
     await page.mouse.move(cb.x + cb.width / 2, cb.y + cb.height / 2);
     await page.mouse.down();
     await page.mouse.move(cb.x + 30, cb.y + 30, { steps: 4 });
-    await page.mouse.move(tb.x + tb.width / 2, tb.y + tb.height / 2, { steps: 8 });
+    await page.mouse.move(tb.x + tb.width / 2, ty, { steps: 8 });
     await page.mouse.up();
 
     await expect.poll(async () => (await groupsOf(page))[to]).toContain('Žiak01');
@@ -124,7 +127,7 @@ test.describe('Tvorca skupín – pravidlá a presúvanie', () => {
     expect(after.flat().sort()).toEqual(NAMES);
     expect(after[from]).not.toContain('Žiak01');
     await expect(widget(page, 'groups').getByRole('button', { name: 'Žiak01' })).toContainText('⚠');
-    await expect(page.getByTestId('groups-status')).toContainText('každý práve raz');
+    await expect(page.getByTestId('groups-status')).toContainText('Žiaci: 12 · Skupiny: 3');
 
     // klávesnicou: šípka vpravo presunie do nasledujúcej skupiny
     const idx = after.findIndex((g) => g.includes('Žiak01'));
@@ -209,7 +212,7 @@ test.describe('Neprítomní žiaci', () => {
     await widget(page, 'groups').getByRole('button', { name: /Rozdeliť/ }).click();
     const g = await groupsOf(page);
     expect(g.flat().sort()).toEqual(NAMES.filter((n) => !['Žiak02', 'Žiak05', 'Žiak09'].includes(n)));
-    await expect(page.getByTestId('groups-status')).toContainText('9 žiakov, každý práve raz');
+    await expect(page.getByTestId('groups-status')).toContainText('Žiaci: 9 · Skupiny: 3');
 
     // priamo vo widgete (panel „Kto je dnes tu“)
     await widget(page, 'groups').getByTestId('attendance-open').click();

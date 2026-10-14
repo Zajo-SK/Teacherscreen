@@ -115,7 +115,7 @@ describe('widget Rozdeľovač skupín', () => {
       expect(groups).toHaveLength(5);
       const shown = groups.flatMap((g) => within(g).getAllByRole('listitem').map((li) => li.textContent!));
       expect(shown.slice().sort()).toEqual(list.slice().sort());
-      expect(screen.getByText(/každý práve raz/)).toBeInTheDocument();
+      expect(screen.getByText(/Žiaci: 23 · Skupiny: 5/)).toBeInTheDocument();
     }
   });
   it('režim podľa veľkosti skupiny', async () => {
@@ -290,7 +290,7 @@ describe('neprítomní žiaci vo widgetoch', () => {
     await user.click(screen.getByRole('button', { name: /rozdeliť do skupín/i }));
     const shown = screen.getAllByRole('listitem').map((l) => l.textContent!.replace(' ⚠', ''));
     expect(shown.sort()).toEqual(list.filter((n) => !['N2', 'N5', 'N9'].includes(n)).sort());
-    expect(screen.getByText(/7 žiakov, každý práve raz/)).toBeInTheDocument();
+    expect(screen.getByText(/Žiaci: 7 · Skupiny: 2/)).toBeInTheDocument();
   });
   it('keď sú všetci neprítomní, nedá sa losovať ani deliť', () => {
     const { unmount } = render(<WidgetHarness type="picker" config={{ names: ['A', 'B'], absent: ['A', 'B'] }} />);

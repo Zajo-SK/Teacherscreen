@@ -1,5 +1,5 @@
 import { Settings2, AlignCenterHorizontal, AlignCenterVertical, AlignEndHorizontal, AlignEndVertical, AlignHorizontalSpaceAround, AlignStartHorizontal, AlignStartVertical, AlignVerticalSpaceAround, ArrowDownToLine, ArrowUpToLine, ChevronDown, ChevronUp, Copy, CopyPlus, Lock, Trash2, Unlock, type LucideIcon } from 'lucide-react';
-import { t, type TKey } from '@/i18n';
+import { t, getLocale, type TKey } from '@/i18n';
 import { useApp, screensInDeck } from '@/store/useApp';
 import type { Align } from '@/lib/screenOps';
 
@@ -29,7 +29,7 @@ export function SelectionBar({ screenId }: { screenId: string }) {
   if (!screen || selection.length === 0) return <div className="h-12" aria-hidden />;
   const sel = screen.widgets.filter((w) => selection.includes(w.id));
   const allLocked = sel.length > 0 && sel.every((w) => w.locked);
-  const others = Object.values(screens).filter((s) => s.id !== screenId).sort((x, y) => x.name.localeCompare(y.name, 'sk'));
+  const others = Object.values(screens).filter((s) => s.id !== screenId).sort((x, y) => x.name.localeCompare(y.name, getLocale()));
   void screensInDeck;
   return (
     <div className="flex min-h-12 flex-wrap items-center gap-1 px-2" role="toolbar" aria-label={t('sel.align')}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { t } from '@/i18n';
+import { t, getLocale } from '@/i18n';
 import { splitWithRules } from '@/lib/groups';
 import type { GroupRules } from '@/types';
 
@@ -9,7 +9,7 @@ type Kind = 'apart' | 'together';
 function PairList({ kind, names, rules, onChange }: { kind: Kind; names: string[]; rules: GroupRules; onChange: (r: GroupRules) => void }) {
   const [a, setA] = useState('');
   const [b, setB] = useState('');
-  const unique = Array.from(new Set(names)).sort((x, y) => x.localeCompare(y, 'sk'));
+  const unique = Array.from(new Set(names)).sort((x, y) => x.localeCompare(y, getLocale()));
   const list = rules[kind];
   const exists = list.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
   const can = a && b && a !== b && !exists;

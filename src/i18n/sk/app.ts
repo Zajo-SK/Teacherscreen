@@ -167,6 +167,7 @@ export const app = {
   'present.empty': 'Táto obrazovka je prázdna.',
 
   'settings.title': 'Nastavenia',
+  'settings.language': 'Jazyk',
   'settings.theme': 'Vzhľad',
   'settings.theme.light': 'Svetlý',
   'settings.theme.dark': 'Tmavý',

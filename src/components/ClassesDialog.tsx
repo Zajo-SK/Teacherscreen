@@ -4,7 +4,7 @@ import { ConfirmDialog, Modal } from './ui';
 import { NamesEditor } from '@/widgets/NamesEditor';
 import { RulesEditor } from '@/widgets/RulesEditor';
 import { emptyRules } from '@/lib/groups';
-import { t } from '@/i18n';
+import { t, getLocale } from '@/i18n';
 import { useApp } from '@/store/useApp';
 import { useCloud } from '@/backend/useCloud';
 import { isBackendConfigured } from '@/backend/client';
@@ -18,7 +18,7 @@ export function ClassesDialog({ open, onClose }: { open: boolean; onClose: () =>
   const signedIn = useCloud((s) => s.status === 'signedIn');
   const [selected, setSelected] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<string | null>(null);
-  const list = Object.values(classes).sort((a, b) => a.name.localeCompare(b.name, 'sk', { numeric: true }));
+  const list = Object.values(classes).sort((a, b) => a.name.localeCompare(b.name, getLocale(), { numeric: true }));
   const cur = selected ? classes[selected] : undefined;
 
   return (

@@ -1,6 +1,6 @@
 import { Clock } from 'lucide-react';
 import { z } from 'zod';
-import { t } from '@/i18n';
+import { t, getLocale } from '@/i18n';
 import { Segmented, Toggle } from '@/components/forms';
 import { useNow } from '@/lib/useNow';
 import { bool, oneOf } from '../fields';
@@ -21,7 +21,7 @@ export function formatClock(d: Date, seconds: boolean): string {
 function ClockWidget({ config }: WidgetProps<Config>) {
   const now = new Date(useNow(true, 250));
   const time = formatClock(now, config.showSeconds);
-  const rawDate = new Intl.DateTimeFormat('sk-SK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
+  const rawDate = new Intl.DateTimeFormat(getLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(now);
   const date = rawDate.charAt(0).toUpperCase() + rawDate.slice(1);
   const led = config.look === 'led';
   return (

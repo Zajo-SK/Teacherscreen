@@ -1,6 +1,8 @@
 import type { Dictionary } from '../index';
 
+import { plW2 } from './pl.w2';
 export const pl: Dictionary = {
+  ...plW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'Interaktywna tablica z widżetami dla Twojej klasy',
   'common.cancel': 'Anuluj',

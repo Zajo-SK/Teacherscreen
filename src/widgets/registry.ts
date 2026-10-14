@@ -17,6 +17,13 @@ import { pollWidget } from './defs/poll';
 import { drawWidget } from './defs/draw';
 import { visualTimerWidget } from './defs/visualTimer';
 import { numberWidget } from './defs/number';
+import { calendarWidget } from './defs/calendar';
+import { countdownWidget } from './defs/countdown';
+import { timetableWidget } from './defs/timetable';
+import { noiseWidget } from './defs/noise';
+import { symbolsWidget } from './defs/symbols';
+import { stickerWidget } from './defs/sticker';
+import { linkWidget } from './defs/link';
 
 /**
  * Register widgetov. Nový widget = nový súbor v `defs/` + jeden riadok tu (+ preklady v i18n).
@@ -39,6 +46,13 @@ const ALL: WidgetDefinition[] = [
   stepsWidget,
   pollWidget,
   drawWidget,
+  calendarWidget,
+  countdownWidget,
+  timetableWidget,
+  noiseWidget,
+  symbolsWidget,
+  stickerWidget,
+  linkWidget,
 ];
 
 const BY_TYPE = new Map<string, WidgetDefinition>(ALL.map((d) => [d.type, d]));

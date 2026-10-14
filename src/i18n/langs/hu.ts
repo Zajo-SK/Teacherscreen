@@ -1,6 +1,8 @@
 import type { Dictionary } from '../index';
 
+import { huW2 } from './hu.w2';
 export const hu: Dictionary = {
+  ...huW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'Interaktív tábla widgetekkel az osztályod számára',
   'common.cancel': 'Mégse',

@@ -1,5 +1,7 @@
 import type { Dictionary } from '../index';
+import { deW2 } from './de.w2';
 export const de: Dictionary = {
+  ...deW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'Interaktive Tafel mit Widgets für deine Klasse',
   'common.cancel': 'Abbrechen',

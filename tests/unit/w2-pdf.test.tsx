@@ -3,11 +3,11 @@ import { describe, expect, it, vi } from 'vitest';
 import { bytesToDataUrl, clampPage, dataUrlToBytes, formatBytes, hasPdfMagic, isSafePdfDataUrl, MAX_PDF_BYTES, validatePdfBytes } from '@/lib/pdf';
 import { WidgetHarness } from './harness';
 
-vi.mock('pdfjs-dist', () => ({
+vi.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
   GlobalWorkerOptions: {},
   getDocument: () => ({ promise: Promise.reject(new Error('encrypted')), destroy: () => Promise.resolve() }),
 }));
-vi.mock('pdfjs-dist/build/pdf.worker.min.mjs?url', () => ({ default: 'worker.mjs' }));
+vi.mock('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url', () => ({ default: 'worker.mjs' }));
 
 const MIN_PDF =
   '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 200 200]>>endobj\ntrailer<</Root 1 0 R/Size 4>>\n%%EOF';

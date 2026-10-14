@@ -57,4 +57,35 @@ test.describe('nové widgety', () => {
     await addWidget(page, 'pdf');
     await expect(widget(page, 'pdf')).toContainText('Vyberte súbor PDF v nastaveniach widgetu.');
   });
+
+  test('PDF: nahratý súbor sa vykreslí a dá sa listovať', async ({ page }) => {
+    const pdf = `%PDF-1.4
+1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj
+2 0 obj<</Type/Pages/Kids[3 0 R 5 0 R]/Count 2>>endobj
+3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 400 300]/Contents 4 0 R/Resources<</Font<</F1 7 0 R>>>>>>endobj
+4 0 obj<</Length 44>>stream
+BT /F1 36 Tf 40 150 Td (Jedna) Tj ET
+endstream
+endobj
+5 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 400 300]/Contents 6 0 R/Resources<</Font<</F1 7 0 R>>>>>>endobj
+6 0 obj<</Length 44>>stream
+BT /F1 36 Tf 40 150 Td (Dva) Tj ET
+endstream
+endobj
+7 0 obj<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>endobj
+trailer<</Root 1 0 R/Size 8>>
+%%EOF`;
+    await openApp(page);
+    await newScreen(page);
+    await addWidget(page, 'pdf');
+    await page.getByTestId('inspector').locator('input[type=file]').setInputFiles({ name: 't.pdf', mimeType: 'application/pdf', buffer: Buffer.from(pdf) });
+    const w = widget(page, 'pdf');
+    await expect(w).toContainText('1 / 2');
+    await expect(w.getByRole('alert')).toHaveCount(0);
+    await expect
+      .poll(() => w.locator('canvas').evaluate((c: HTMLCanvasElement) => c.getContext('2d')!.getImageData(0, 0, c.width, c.height).data.some((v, i) => i % 4 === 3 && v > 0)))
+      .toBe(true);
+    await w.getByRole('button', { name: /Nasledujúca/ }).click();
+    await expect(w).toContainText('2 / 2');
+  });
 });

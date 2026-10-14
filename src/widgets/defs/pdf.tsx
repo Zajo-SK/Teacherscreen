@@ -28,7 +28,7 @@ interface PdfPage {
 
 /** Lazy načítanie pdfjs a jeho workera (samostatné chunky, nie sú v hlavnom balíku). */
 async function loadPdfjs() {
-  const [pdfjs, worker] = await Promise.all([import('pdfjs-dist'), import('pdfjs-dist/build/pdf.worker.min.mjs?url')]);
+  const [pdfjs, worker] = await Promise.all([import('pdfjs-dist/legacy/build/pdf.mjs'), import('pdfjs-dist/legacy/build/pdf.worker.min.mjs?url')]);
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   return pdfjs;
 }
@@ -144,7 +144,10 @@ function PdfWidget({ widget, config, update }: WidgetProps<Config>) {
         await rendering.promise;
         if (!cancelled) setStatus('idle');
       } catch (e) {
-        if (!cancelled && (e as { name?: string })?.name !== 'RenderingCancelledException') setStatus('render-error');
+        if (!cancelled && (e as { name?: string })?.name !== 'RenderingCancelledException') {
+          console.warn('PDF: vykreslenie zlyhalo', e);
+          setStatus('render-error');
+        }
       }
     })();
     return () => {

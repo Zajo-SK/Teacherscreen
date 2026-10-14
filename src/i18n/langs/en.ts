@@ -1,6 +1,8 @@
 import type { Dictionary } from '../index';
 
+import { enW2 } from './en.w2';
 export const en: Dictionary = {
+  ...enW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'An interactive whiteboard with widgets for your class',
   'common.cancel': 'Cancel',

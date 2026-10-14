@@ -26,7 +26,14 @@ export type WidgetType =
   | 'poll'
   | 'draw'
   | 'number'
-  | 'visual-timer';
+  | 'visual-timer'
+  | 'calendar'
+  | 'countdown'
+  | 'timetable'
+  | 'noise'
+  | 'symbols'
+  | 'sticker'
+  | 'link';
 
 export interface WidgetColors {
   /** CSS farba pozadia widgetu; undefined = predvolená podľa témy. */

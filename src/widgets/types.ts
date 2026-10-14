@@ -39,6 +39,8 @@ export interface WidgetDefinition<C = any> {
   Settings?: ComponentType<SettingsProps<C>>;
   /** Ak vráti číslo (šírka/výška), zmena veľkosti zachováva pomer strán. */
   aspectRatio?: (config: C) => number | null;
+  /** Widget sa vykreslí bez karty (priehľadné pozadie, bez tieňa a zaoblenia), pokiaľ používateľ nenastaví farbu pozadia. */
+  frameless?: boolean;
   /** Odstráni osobné údaje žiakov pred odoslaním na server. */
   stripStudentData?: (config: C) => C;
   /** Obsahuje widget zoznam žiakov (pre export bez mien). */

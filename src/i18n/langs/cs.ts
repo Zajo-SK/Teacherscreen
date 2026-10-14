@@ -1,6 +1,8 @@
 import type { Dictionary } from '../index';
 
+import { csW2 } from './cs.w2';
 export const cs: Dictionary = {
+  ...csW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'Interaktivní tabule s widgety pro vaši třídu',
   'common.cancel': 'Zrušit',

@@ -1,5 +1,7 @@
 import type { Dictionary } from '../index';
+import { ruW2 } from './ru.w2';
 export const ru: Dictionary = {
+  ...ruW2,
   'app.name': 'TeacherScreen',
   'app.tagline': 'Интерактивная доска с виджетами для вашего класса',
   'common.cancel': 'Отмена',

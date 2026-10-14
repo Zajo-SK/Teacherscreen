@@ -34,7 +34,9 @@ export type WidgetType =
   | 'symbols'
   | 'sticker'
   | 'link'
-  | 'video';
+  | 'video'
+  | 'embed'
+  | 'pdf';
 
 export interface WidgetColors {
   /** CSS farba pozadia widgetu; undefined = predvolená podľa témy. */

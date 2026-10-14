@@ -25,6 +25,8 @@ import { symbolsWidget } from './defs/symbols';
 import { stickerWidget } from './defs/sticker';
 import { linkWidget } from './defs/link';
 import { videoWidget } from './defs/video';
+import { embedWidget } from './defs/embed';
+import { pdfWidget } from './defs/pdf';
 
 /**
  * Register widgetov. Nový widget = nový súbor v `defs/` + jeden riadok tu (+ preklady v i18n).
@@ -55,6 +57,8 @@ const ALL: WidgetDefinition[] = [
   stickerWidget,
   linkWidget,
   videoWidget,
+  embedWidget,
+  pdfWidget,
 ];
 
 const BY_TYPE = new Map<string, WidgetDefinition>(ALL.map((d) => [d.type, d]));

@@ -7,9 +7,11 @@ export async function openApp(page: Page) {
   await expect(page.getByTestId('new-screen')).toBeVisible();
 }
 
-export async function newScreen(page: Page) {
+/** Vytvorí novú obrazovku; panel vlastností je v editore predvolene zatvorený, testy ho zvyčajne otvoria. */
+export async function newScreen(page: Page, openInspector = true) {
   await page.getByTestId('new-screen').click();
   await expect(page.getByTestId('stage')).toBeVisible();
+  if (openInspector) await page.getByTestId('inspector-toggle').click();
 }
 
 /** Otvorí zbaliteľnú sekciu (ak je zbalená). */
@@ -25,7 +27,6 @@ export async function addWidget(page: Page, type: string) {
   const inMore = !(await tile.isVisible());
   if (inMore) await page.getByTestId('bar-more-btn').click();
   await tile.click();
-  if (inMore) await page.keyboard.press('Escape');
   await expect(page.locator(`[data-widget-type="${type}"]`)).toHaveCount(n + 1);
 }
 

@@ -375,7 +375,7 @@ export const de: Dictionary = {
   'tour.home.settings.title': 'Einstellungen ⚙️',
   'tour.home.settings.text': 'Helle/dunkle Darstellung, Töne, Animationen. Hier kannst du den Rundgang erneut starten.',
   'tour.editor.palette.title': 'Widgets 🧩',
-  'tour.editor.palette.text': 'Mit einem Klick auf eine Kachel fügst du ein Widget zur Fläche hinzu. Sie sind nach Farben gruppiert: Inhalt, Zeit, Klasse und Werkzeuge.',
+  'tour.editor.palette.text': "Tippe unten in der Leiste auf eine Kachel, um ein Widget hinzuzufügen. Weitere Werkzeuge findest du unter „Mehr“; die Leiste lässt sich anpassen.",
   'tour.editor.stage.title': 'Arbeitsfläche 🖼️',
   'tour.editor.stage.text': 'Verschiebe Widgets per Ziehen und ändere die Größe an den Eckpunkten. Mehrere Widgets wählst du aus, indem du ein Rechteck aufziehst.',
   'tour.editor.settings.title': 'Widget-Einstellungen 🎛️',

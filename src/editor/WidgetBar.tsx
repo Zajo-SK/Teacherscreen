@@ -34,7 +34,7 @@ function Tile({ def, onClick, pinned, editing }: { def: WidgetDefinition; onClic
       data-tip={t(def.description)}
       aria-pressed={editing ? !!pinned : undefined}
       onClick={onClick}
-      className="group flex w-[76px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+      className="group flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
     >
       <span className="relative grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: c }}>
         <Icon size={24} aria-hidden color="#fff" />
@@ -109,13 +109,14 @@ export function WidgetBar({ screenId }: { screenId: string }) {
 
   const add = (d: WidgetDefinition) => {
     if (addWidget(screenId, d.type)) toast(t('editor.widgetAdded', { name: t(d.label) }), { ms: 1500 });
+    setPanel(null);
   };
   const toggle = (d: WidgetDefinition) => setBar((cur) => (cur.includes(d.type) ? cur.filter((x) => x !== d.type) : [...cur, d.type]));
 
   if (collapsed) {
     return (
-      <div className="absolute inset-x-0 bottom-3 z-20 flex justify-center">
-        <button type="button" className="btn gap-2 rounded-full bg-black/70 px-4 text-white shadow-lg backdrop-blur" data-testid="bar-expand" onClick={() => setCollapsed(false)}>
+      <div className="pointer-events-none flex min-w-0 flex-1 justify-center">
+        <button type="button" className="btn pointer-events-auto gap-2 rounded-full bg-black/70 px-4 text-white shadow-lg backdrop-blur" data-testid="bar-expand" onClick={() => setCollapsed(false)}>
           <ChevronUp size={18} aria-hidden /> {t('bar.expand')}
         </button>
       </div>
@@ -123,7 +124,7 @@ export function WidgetBar({ screenId }: { screenId: string }) {
   }
 
   return (
-    <div ref={root} className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex flex-col items-center gap-2 px-2" data-testid="widget-bar" data-tour="palette">
+    <div ref={root} className="pointer-events-none flex min-w-0 flex-1 flex-col items-center gap-2" data-testid="widget-bar" data-tour="palette">
       {panel === 'more' && (
         <section aria-label={t('bar.more')} data-testid="bar-more" className="pointer-events-auto max-h-[60vh] w-full max-w-xl overflow-auto rounded-3xl bg-[#0b0f24]/95 p-4 text-white shadow-2xl backdrop-blur">
           <div className="mb-3 flex items-center justify-between gap-2">
@@ -151,14 +152,14 @@ export function WidgetBar({ screenId }: { screenId: string }) {
         </section>
       )}
       <div className="pointer-events-auto flex max-w-full items-end gap-1 rounded-[26px] bg-[#0b0f24]/90 px-3 pb-2 pt-2 shadow-2xl backdrop-blur">
-        <div className="flex min-w-0 items-end gap-1 overflow-x-auto">
+        <div className="flex min-w-0 items-end gap-1 overflow-x-auto overflow-y-hidden pt-1">
           <button
             type="button"
             data-testid="bar-background"
             data-tip={t('bar.backgroundTip')}
             aria-expanded={panel === 'bg'}
             onClick={() => setPanel(panel === 'bg' ? null : 'bg')}
-            className="flex w-[76px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+            className="flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: 'var(--primary)' }}>
               <ImageIcon size={24} aria-hidden color="#fff" />
@@ -174,7 +175,7 @@ export function WidgetBar({ screenId }: { screenId: string }) {
             data-tip={t('bar.moreTip')}
             aria-expanded={panel === 'more'}
             onClick={() => setPanel(panel === 'more' ? null : 'more')}
-            className="flex w-[76px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+            className="flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: 'color-mix(in srgb, var(--primary) 70%, #000)', outline: panel === 'more' ? '3px solid #fff' : undefined, outlineOffset: 2 }}>
               <LayoutGrid size={24} aria-hidden color="#fff" />

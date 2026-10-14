@@ -131,8 +131,10 @@ export function Editor({ id }: { id: string }) {
               <SelectionBar screenId={id} />
             </div>
           </div>
-          <WidgetBar screenId={id} />
-          <ScreenSwitcher screenId={id} />
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex items-end gap-2 px-3">
+            <ScreenSwitcher screenId={id} />
+            <WidgetBar screenId={id} />
+          </div>
         </main>
         {rightOpen && (
           <aside className="absolute inset-y-0 right-0 z-30 w-80 overflow-auto border-l border-line bg-surface shadow-xl xl:static xl:shadow-none" data-testid="inspector">

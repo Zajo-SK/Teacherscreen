@@ -5,8 +5,7 @@ test.describe('9: tablet a veľká obrazovka', () => {
   test('tablet (iPad, dotyk): editor je použiteľný bez vodorovného posúvania', async ({ page }) => {
     await openApp(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    await newScreen(page);
-    if (!(await page.getByTestId('add-timer').isVisible())) await page.getByRole('button', { name: 'Widgety' }).click();
+    await newScreen(page, false);
     await addWidget(page, 'timer');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     const sb = (await page.getByTestId('stage').boundingBox())!;

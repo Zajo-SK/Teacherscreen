@@ -57,10 +57,9 @@ test.describe('používateľský zážitok', () => {
     await page.addInitScript(() => localStorage.setItem('ts.notour', '1'));
     await page.setViewportSize({ width: 900, height: 768 });
     await openApp(page);
-    await newScreen(page);
-    await page.getByRole('button', { name: 'Widgety' }).click();
+    await newScreen(page, false);
     await addWidget(page, 'timer');
-    await expect(page.getByTestId('inspector')).toHaveCount(0); // na užšej obrazovke je panel skrytý…
+    await expect(page.getByTestId('inspector')).toHaveCount(0); // panel je predvolene skrytý obrazovke je panel skrytý…
     await page.getByTestId('widget-settings-btn').click(); // …otvorí ho tlačidlo v lište
     await expect(page.getByTestId('inspector').getByLabel('Minúty')).toBeVisible();
     await page.getByTestId('inspector-toggle').click();
@@ -115,7 +114,7 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     await page.route('https://upload.wikimedia.org/**', (route) => route.fulfill({ status: 200, contentType: 'image/png', headers: { 'access-control-allow-origin': '*' }, body: PNG }));
 
     await openApp(page);
-    await newScreen(page);
+    await newScreen(page, false);
     await page.getByTestId('bar-background').click();
     await openSection(page, 'bg-photos');
     await expect(page.getByTestId('photo-item')).toHaveCount(1); // fotka s NC licenciou je vyradená
@@ -129,8 +128,6 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
 
     // výpadok siete
     online = false;
-    await page.keyboard.press('Escape');
-    await page.getByTestId('bar-background').click();
     await openSection(page, 'bg-photos');
     await page.getByRole('tab', { name: 'Hory' }).click();
     await expect(page.getByTestId('photo-error')).toBeVisible();

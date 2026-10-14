@@ -376,7 +376,7 @@ export const cs: Dictionary = {
   'tour.home.settings.title': 'Nastavení ⚙️',
   'tour.home.settings.text': 'Světlý/tmavý vzhled, zvuky, animace. Tady můžete prohlídku spustit znovu.',
   'tour.editor.palette.title': 'Widgety 🧩',
-  'tour.editor.palette.text': 'Kliknutím na dlaždici přidáte widget na plochu. Jsou rozdělené podle barev: obsah, čas, třída a nástroje.',
+  'tour.editor.palette.text': "Kliknutím na dlaždici v liště dole přidáte widget na plochu. Další nástroje najdete pod „Více“ a lištu si můžete upravit.",
   'tour.editor.stage.title': 'Pracovní plocha 🖼️',
   'tour.editor.stage.text': 'Widgety přesouvejte tažením a velikost měňte rohovými body. Více widgetů vyberete tažením obdélníku.',
   'tour.editor.settings.title': 'Nastavení widgetu 🎛️',

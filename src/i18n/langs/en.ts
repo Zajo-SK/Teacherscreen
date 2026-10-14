@@ -376,7 +376,7 @@ export const en: Dictionary = {
   'tour.home.settings.title': 'Settings ⚙️',
   'tour.home.settings.text': 'Light/dark appearance, sounds, animations. You can restart the tour here.',
   'tour.editor.palette.title': 'Widgets 🧩',
-  'tour.editor.palette.text': 'Click a tile to add a widget to the board. They are grouped by colour: content, time, class and tools.',
+  'tour.editor.palette.text': "Click a tile in the bar below to add a widget to the screen. Find more tools under “More”, and you can customise the bar.",
   'tour.editor.stage.title': 'Workspace 🖼️',
   'tour.editor.stage.text': 'Drag widgets to move them and use the corner handles to resize. To select several widgets, drag a rectangle around them.',
   'tour.editor.settings.title': 'Widget settings 🎛️',

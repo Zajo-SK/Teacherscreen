@@ -20,7 +20,6 @@ test.describe('roll-up menu', () => {
   test('kategórie widgetov aj sekcie panelu sa dajú zbaliť a rozbaliť a stav sa pamätá', async ({ page }) => {
     await openApp(page);
     await newScreen(page);
-    await page.getByTestId('inspector-toggle').click();
     // pravý panel: obrazovka → sekcie; widget → nastavenia / farby / poloha
     await expect(page.getByTestId('sec-screen-bg')).toHaveAttribute('aria-expanded', 'true');
     await page.getByTestId('sec-screen-bg').click();

@@ -374,7 +374,7 @@ export const app = {
   'tour.home.settings.title': 'Nastavenia ⚙️',
   'tour.home.settings.text': 'Svetlý/tmavý vzhľad, zvuky, animácie. Tu môžete prehliadku spustiť znova.',
   'tour.editor.palette.title': 'Widgety 🧩',
-  'tour.editor.palette.text': 'Kliknutím na dlaždicu pridáte widget na plochu. Sú rozdelené podľa farieb: obsah, čas, trieda a nástroje.',
+  'tour.editor.palette.text': "Kliknutím na dlaždicu v lište dole pridáte widget na plochu. Ďalšie nástroje nájdete pod „Viac“ a lištu si môžete upraviť.",
   'tour.editor.stage.title': 'Pracovná plocha 🖼️',
   'tour.editor.stage.text': 'Widgety presúvajte ťahaním a veľkosť meňte rohovými bodmi. Viac widgetov vyberiete ťahaním obdĺžnika.',
   'tour.editor.settings.title': 'Nastavenia widgetu 🎛️',

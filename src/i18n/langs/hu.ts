@@ -376,7 +376,7 @@ export const hu: Dictionary = {
   'tour.home.settings.title': 'Beállítások ⚙️',
   'tour.home.settings.text': 'Világos/sötét megjelenés, hangok, animációk. Itt újraindíthatod a bemutatót.',
   'tour.editor.palette.title': 'Widgetek 🧩',
-  'tour.editor.palette.text': 'A csempére kattintva adhatsz widgetet a munkaterülethez. Színek szerint vannak csoportosítva: tartalom, idő, osztály és eszközök.',
+  'tour.editor.palette.text': "Kattintson az alsó sáv egy csempéjére, hogy widgetet adjon a képernyőhöz. További eszközök a „Több” alatt vannak, a sáv testre szabható.",
   'tour.editor.stage.title': 'Munkaterület 🖼️',
   'tour.editor.stage.text': 'A widgeteket húzással mozgathatod, a méretüket a sarokpontokkal változtathatod. Több widgetet téglalap húzásával jelölhetsz ki.',
   'tour.editor.settings.title': 'Widget beállításai 🎛️',

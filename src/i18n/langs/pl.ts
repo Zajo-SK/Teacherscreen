@@ -376,7 +376,7 @@ export const pl: Dictionary = {
   'tour.home.settings.title': 'Ustawienia ⚙️',
   'tour.home.settings.text': 'Jasny/ciemny wygląd, dźwięki, animacje. Tutaj możesz ponownie uruchomić przewodnik.',
   'tour.editor.palette.title': 'Widżety 🧩',
-  'tour.editor.palette.text': 'Kliknij kafelek, aby dodać widżet na planszę. Są podzielone według kolorów: treść, czas, klasa i narzędzia.',
+  'tour.editor.palette.text': "Kliknij kafelek na dolnym pasku, aby dodać widżet do ekranu. Więcej narzędzi znajdziesz pod „Więcej”, a pasek możesz dostosować.",
   'tour.editor.stage.title': 'Obszar roboczy 🖼️',
   'tour.editor.stage.text': 'Widżety przesuwaj przeciąganiem, a rozmiar zmieniaj za pomocą punktów w rogach. Kilka widżetów zaznaczysz, rysując prostokąt.',
   'tour.editor.settings.title': 'Ustawienia widżetu 🎛️',

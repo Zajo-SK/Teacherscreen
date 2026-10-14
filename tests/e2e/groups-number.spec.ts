@@ -20,21 +20,7 @@ test.describe('roll-up menu', () => {
   test('kategórie widgetov aj sekcie panelu sa dajú zbaliť a rozbaliť a stav sa pamätá', async ({ page }) => {
     await openApp(page);
     await newScreen(page);
-    const content = page.getByTestId('sec-palette-content');
-    const time = page.getByTestId('sec-palette-time');
-    await expect(content).toHaveAttribute('aria-expanded', 'true');
-    await expect(time).toHaveAttribute('aria-expanded', 'false');
-    await expect(page.getByTestId('add-text')).toBeVisible();
-    await expect(page.getByTestId('add-timer')).toHaveCount(0);
-    await time.click();
-    await expect(page.getByTestId('add-timer')).toBeVisible();
-    await content.click();
-    await expect(page.getByTestId('add-text')).toHaveCount(0);
-    await waitSaved(page);
-    await page.reload();
-    await expect(page.getByTestId('sec-palette-time')).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.getByTestId('sec-palette-content')).toHaveAttribute('aria-expanded', 'false');
-
+    await page.getByTestId('inspector-toggle').click();
     // pravý panel: obrazovka → sekcie; widget → nastavenia / farby / poloha
     await expect(page.getByTestId('sec-screen-bg')).toHaveAttribute('aria-expanded', 'true');
     await page.getByTestId('sec-screen-bg').click();

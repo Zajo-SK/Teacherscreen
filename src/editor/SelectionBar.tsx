@@ -26,7 +26,7 @@ export function SelectionBar({ screenId }: { screenId: string }) {
   const selection = useApp((s) => s.selection);
   const a = useApp.getState();
   const inspectorOpen = useApp((s) => s.inspectorOpen);
-  if (!screen || selection.length === 0) return <div className="h-12" aria-hidden />;
+  if (!screen || selection.length === 0) return null;
   const sel = screen.widgets.filter((w) => selection.includes(w.id));
   const allLocked = sel.length > 0 && sel.every((w) => w.locked);
   const others = Object.values(screens).filter((s) => s.id !== screenId).sort((x, y) => x.name.localeCompare(y.name, getLocale()));

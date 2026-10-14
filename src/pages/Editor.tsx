@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelLeft, PanelRight, Play, Redo2, Settings, Share, Undo2 } from 'lucide-react';
+import { Check, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2 } from 'lucide-react';
 import { Stage } from '@/components/Stage';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { t } from '@/i18n';
@@ -7,17 +7,17 @@ import { navigate } from '@/lib/router';
 import { fullscreenSupported, toggleFullscreen, useFullscreen } from '@/lib/fullscreen';
 import { useApp } from '@/store/useApp';
 import { ScreenRuntime } from '@/widgets/ScreenRuntime';
-import { Palette } from '@/editor/Palette';
+import { WidgetBar } from '@/editor/WidgetBar';
+import { ScreenSwitcher } from '@/editor/ScreenSwitcher';
 import { Inspector } from '@/editor/Inspector';
 import { SelectionBar } from '@/editor/SelectionBar';
-import { Filmstrip } from '@/editor/Filmstrip';
 import { ExportDialog } from '@/editor/ExportDialog';
 import { useEditorShortcuts } from '@/editor/useShortcuts';
 import { CloudScreenButton } from '@/backend/CloudPanel';
 import { Tour, type TourStep } from '@/components/Tour';
 
 const EDITOR_TOUR: TourStep[] = [
-  { target: ['[data-tour=palette]', '[data-tour=palette-toggle]'], title: 'tour.editor.palette.title', text: 'tour.editor.palette.text' },
+  { target: ['[data-tour=palette]'], title: 'tour.editor.palette.title', text: 'tour.editor.palette.text' },
   { target: ['[data-tour=stage]'], title: 'tour.editor.stage.title', text: 'tour.editor.stage.text' },
   { target: ['[data-tour=inspector-toggle]'], title: 'tour.editor.settings.title', text: 'tour.editor.settings.text' },
   { target: ['[data-tour=undo]'], title: 'tour.editor.undo.title', text: 'tour.editor.undo.text' },
@@ -52,7 +52,6 @@ export function Editor({ id }: { id: string }) {
   const markOpened = useApp((s) => s.markOpened);
   const select = useApp((s) => s.select);
   const fs = useFullscreen();
-  const [leftOpen, setLeftOpen] = useState(() => window.innerWidth >= 1024);
   const rightOpen = useApp((s) => s.inspectorOpen);
   const setRightOpen = useApp((s) => s.setInspectorOpen);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -85,9 +84,6 @@ export function Editor({ id }: { id: string }) {
       <header className="flex flex-wrap items-center gap-2 border-b border-line bg-surface px-2 py-2">
         <button type="button" className="btn btn-icon" aria-label={t('editor.home')} title={t('editor.home')} onClick={() => navigate({ name: 'home' })}>
           <Home size={20} aria-hidden />
-        </button>
-        <button type="button" className="btn btn-icon" data-tour="palette-toggle" aria-label={t('editor.palette')} aria-pressed={leftOpen} onClick={() => setLeftOpen(!leftOpen)}>
-          <PanelLeft size={20} aria-hidden />
         </button>
         <input
           className="input min-w-0 max-w-sm flex-1 font-semibold"
@@ -125,17 +121,18 @@ export function Editor({ id }: { id: string }) {
           </button>
         </div>
       </header>
-      <div className="border-b border-line bg-surface">
-        <SelectionBar screenId={id} />
-      </div>
       <div className="relative flex min-h-0 flex-1">
-        {leftOpen && (
-          <aside data-tour="palette" className="absolute inset-y-0 left-0 z-30 w-64 overflow-auto border-r border-line bg-surface shadow-xl lg:static lg:shadow-none">
-            <Palette screenId={id} onAdded={() => window.innerWidth < 1024 && setLeftOpen(false)} />
-          </aside>
-        )}
-        <main data-tour="stage" className="min-w-0 flex-1" aria-label={t('editor.canvasLabel')}>
-          <Stage screenId={id} mode="edit" />
+        <main data-tour="stage" className="relative min-w-0 flex-1" aria-label={t('editor.canvasLabel')}>
+          <div className="absolute inset-0 pb-28">
+            <Stage screenId={id} mode="edit" />
+          </div>
+          <div className="pointer-events-none absolute inset-x-0 top-2 z-20 flex justify-center px-2">
+            <div className="pointer-events-auto max-w-full rounded-2xl border border-line bg-surface/95 shadow-lg backdrop-blur empty:hidden">
+              <SelectionBar screenId={id} />
+            </div>
+          </div>
+          <WidgetBar screenId={id} />
+          <ScreenSwitcher screenId={id} />
         </main>
         {rightOpen && (
           <aside className="absolute inset-y-0 right-0 z-30 w-80 overflow-auto border-l border-line bg-surface shadow-xl xl:static xl:shadow-none" data-testid="inspector">
@@ -145,7 +142,6 @@ export function Editor({ id }: { id: string }) {
           </aside>
         )}
       </div>
-      <Filmstrip screenId={id} />
       <Tour id="editor" steps={EDITOR_TOUR} />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ExportDialog screenId={id} open={exportOpen} onClose={() => setExportOpen(false)} />

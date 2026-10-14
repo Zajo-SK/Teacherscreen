@@ -12,13 +12,6 @@ export async function newScreen(page: Page) {
   await expect(page.getByTestId('stage')).toBeVisible();
 }
 
-const CATEGORY: Record<string, string> = {
-  text: 'content', image: 'content', qr: 'content', steps: 'content',
-  clock: 'time', timer: 'time', 'visual-timer': 'time', stopwatch: 'time',
-  traffic: 'class', picker: 'class', groups: 'class', scoreboard: 'class', poll: 'class',
-  dice: 'tools', number: 'tools', draw: 'tools',
-};
-
 /** Otvorí zbaliteľnú sekciu (ak je zbalená). */
 export async function openSection(page: Page, id: string) {
   const header = page.getByTestId(`sec-${id}`);
@@ -29,8 +22,10 @@ export async function openSection(page: Page, id: string) {
 export async function addWidget(page: Page, type: string) {
   const n = await page.locator(`[data-widget-type="${type}"]`).count();
   const tile = page.getByTestId(`add-${type}`);
-  if (!(await tile.isVisible())) await openSection(page, `palette-${CATEGORY[type]}`);
+  const inMore = !(await tile.isVisible());
+  if (inMore) await page.getByTestId('bar-more-btn').click();
   await tile.click();
+  if (inMore) await page.keyboard.press('Escape');
   await expect(page.locator(`[data-widget-type="${type}"]`)).toHaveCount(n + 1);
 }
 

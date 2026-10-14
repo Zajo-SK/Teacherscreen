@@ -170,7 +170,7 @@ export const useApp = create<AppState>()((set, get) => {
     clipboard: [],
     history: {},
     toasts: [],
-    inspectorOpen: typeof window !== 'undefined' && window.innerWidth >= 1280,
+    inspectorOpen: false,
     setInspectorOpen: (inspectorOpen) => set({ inspectorOpen }),
 
     async init(storage) {

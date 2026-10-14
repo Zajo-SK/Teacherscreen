@@ -41,7 +41,6 @@ test.describe('používateľský zážitok', () => {
     await expect(page.getByRole('tooltip')).toContainText('Späť');
     await page.mouse.move(5, 400);
     await expect(page.getByRole('tooltip')).toHaveCount(0);
-    await openSection(page, 'palette-time');
     await page.getByTestId('add-timer').hover();
     await expect(page.getByRole('tooltip')).toContainText('Odpočítavanie');
     await page.getByTestId('add-timer').click();
@@ -117,7 +116,7 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
 
     await openApp(page);
     await newScreen(page);
-    await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
+    await page.getByTestId('bar-background').click();
     await openSection(page, 'bg-photos');
     await expect(page.getByTestId('photo-item')).toHaveCount(1); // fotka s NC licenciou je vyradená
     await page.getByTestId('photo-item').click();
@@ -125,11 +124,13 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     await expect(page.getByTestId('stage').locator('xpath=..')).toHaveCSS('background-image', /data:image\/jpeg/);
     await page.waitForTimeout(700);
     await page.reload();
+    await page.getByTestId('bar-background').click();
     await expect(page.getByTestId('bg-credit')).toBeVisible();
 
     // výpadok siete
     online = false;
-    await page.locator('[data-testid="stage"]').click({ position: { x: 4, y: 4 } });
+    await page.keyboard.press('Escape');
+    await page.getByTestId('bar-background').click();
     await openSection(page, 'bg-photos');
     await page.getByRole('tab', { name: 'Hory' }).click();
     await expect(page.getByTestId('photo-error')).toBeVisible();

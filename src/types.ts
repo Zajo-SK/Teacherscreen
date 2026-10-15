@@ -36,7 +36,8 @@ export type WidgetType =
   | 'link'
   | 'video'
   | 'embed'
-  | 'pdf';
+  | 'pdf'
+  | 'mindmap';
 
 export interface WidgetColors {
   /** CSS farba pozadia widgetu; undefined = predvolená podľa témy. */

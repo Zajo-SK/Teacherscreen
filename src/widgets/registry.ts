@@ -27,6 +27,7 @@ import { linkWidget } from './defs/link';
 import { videoWidget } from './defs/video';
 import { embedWidget } from './defs/embed';
 import { pdfWidget } from './defs/pdf';
+import { mindmapWidget } from './defs/mindmap';
 
 /**
  * Register widgetov. Nový widget = nový súbor v `defs/` + jeden riadok tu (+ preklady v i18n).
@@ -59,6 +60,7 @@ const ALL: WidgetDefinition[] = [
   videoWidget,
   embedWidget,
   pdfWidget,
+  mindmapWidget,
 ];
 
 const BY_TYPE = new Map<string, WidgetDefinition>(ALL.map((d) => [d.type, d]));

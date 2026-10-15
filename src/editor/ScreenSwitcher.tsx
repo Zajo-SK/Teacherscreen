@@ -31,7 +31,7 @@ export function ScreenSwitcher({ screenId }: { screenId: string }) {
     if (s) navigate({ name: 'edit', id: s.id });
   };
   return (
-    <div ref={root} className="pointer-events-auto relative flex-none" data-tour="screens">
+    <div ref={root} className="pointer-events-auto absolute bottom-3 left-3 z-30" data-tour="screens">
       {open && (
         <div className="absolute bottom-full left-0 mb-2 w-[min(92vw,640px)] overflow-hidden rounded-2xl border border-line bg-surface shadow-2xl" data-testid="screens-panel">
           <Filmstrip screenId={screenId} />

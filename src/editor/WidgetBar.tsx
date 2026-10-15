@@ -9,7 +9,7 @@ import { BackgroundPicker } from './BackgroundPicker';
 
 const CAT_COLOR: Record<string, string> = { content: 'var(--coral)', time: 'var(--sky)', class: 'var(--mint)', tools: 'var(--lilac)' };
 const BAR_KEY = 'ts.bar';
-const DEFAULT_BAR = ['groups', 'picker', 'poll', 'traffic', 'text', 'image', 'steps', 'timer', 'clock'];
+const DEFAULT_BAR = ['groups', 'picker', 'poll', 'traffic', 'text', 'image', 'timer', 'clock'];
 
 function loadBar(): string[] {
   try {
@@ -24,17 +24,18 @@ function loadBar(): string[] {
   return DEFAULT_BAR;
 }
 
-function Tile({ def, onClick, pinned, editing }: { def: WidgetDefinition; onClick: () => void; pinned?: boolean; editing?: boolean }) {
+function Tile({ def, onClick, pinned, editing, labelled }: { def: WidgetDefinition; onClick: () => void; pinned?: boolean; editing?: boolean; labelled?: boolean }) {
   const Icon = def.icon;
   const c = CAT_COLOR[def.category] ?? 'var(--primary)';
   return (
     <button
       type="button"
       data-testid={`add-${def.type}`}
-      data-tip={t(def.description)}
+      data-tip={`${t(def.label)} – ${t(def.description)}`}
+      aria-label={labelled ? undefined : t(def.label)}
       aria-pressed={editing ? !!pinned : undefined}
       onClick={onClick}
-      className="group flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+      className={`group flex flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95 ${labelled ? 'w-[70px]' : 'w-[54px]'}`}
     >
       <span className="relative grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: c }}>
         <Icon size={24} aria-hidden color="#fff" />
@@ -44,7 +45,7 @@ function Tile({ def, onClick, pinned, editing }: { def: WidgetDefinition; onClic
           </span>
         )}
       </span>
-      <span className="line-clamp-2 leading-tight">{t(def.label)}</span>
+      {labelled && <span className="line-clamp-2 leading-tight">{t(def.label)}</span>}
     </button>
   );
 }
@@ -138,7 +139,7 @@ export function WidgetBar({ screenId }: { screenId: string }) {
           <ul className="grid grid-cols-4 gap-x-1 gap-y-2 sm:grid-cols-5">
             {(editing ? widgetDefinitions : rest).map((d) => (
               <li key={d.type} className="flex justify-center">
-                <Tile def={d} editing={editing} pinned={bar.includes(d.type)} onClick={() => (editing ? toggle(d) : add(d))} />
+                <Tile labelled def={d} editing={editing} pinned={bar.includes(d.type)} onClick={() => (editing ? toggle(d) : add(d))} />
               </li>
             ))}
           </ul>
@@ -157,14 +158,14 @@ export function WidgetBar({ screenId }: { screenId: string }) {
             type="button"
             data-testid="bar-background"
             data-tip={t('bar.backgroundTip')}
+            aria-label={t('bar.background')}
             aria-expanded={panel === 'bg'}
             onClick={() => setPanel(panel === 'bg' ? null : 'bg')}
-            className="flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+            className="flex w-[54px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: 'var(--primary)' }}>
               <ImageIcon size={24} aria-hidden color="#fff" />
             </span>
-            <span className="leading-tight">{t('bar.background')}</span>
           </button>
           {pinned.map((d) => (
             <Tile key={d.type} def={d} onClick={() => add(d)} />
@@ -173,14 +174,14 @@ export function WidgetBar({ screenId }: { screenId: string }) {
             type="button"
             data-testid="bar-more-btn"
             data-tip={t('bar.moreTip')}
+            aria-label={t('bar.more')}
             aria-expanded={panel === 'more'}
             onClick={() => setPanel(panel === 'more' ? null : 'more')}
-            className="flex w-[70px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
+            className="flex w-[54px] flex-none flex-col items-center gap-1 rounded-2xl px-1 py-1 text-center text-xs font-bold normal-case tracking-normal text-white transition-transform duration-150 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="grid h-12 w-12 place-items-center rounded-2xl shadow-[inset_0_-3px_0_rgb(0_0_0/0.2)]" style={{ background: 'color-mix(in srgb, var(--primary) 70%, #000)', outline: panel === 'more' ? '3px solid #fff' : undefined, outlineOffset: 2 }}>
               <LayoutGrid size={24} aria-hidden color="#fff" />
             </span>
-            <span className="leading-tight">{t('bar.more')}</span>
           </button>
         </div>
         <button type="button" className="btn btn-icon mb-5 ml-1 flex-none rounded-xl border-0 bg-white/10 text-white" aria-label={t('bar.collapse')} data-tip={t('bar.collapse')} data-testid="bar-collapse" onClick={() => { setPanel(null); setCollapsed(true); }}>

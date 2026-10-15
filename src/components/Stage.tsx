@@ -9,6 +9,7 @@ import { bgPresetUrl } from '@/lib/backgrounds';
 import { sortByZ } from '@/lib/screenOps';
 import { getWidgetDefinition } from '@/widgets/registry';
 import { ScreenRuntime } from '@/widgets/ScreenRuntime';
+import { RuntimeContext, defaultRuntime } from '@/widgets/runtime';
 
 export function backgroundStyle(bg: Background): CSSProperties {
   switch (bg.kind) {
@@ -414,7 +415,8 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
   );
 }
 
-export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, background }: { widgets: WidgetInstance[]; aspect: keyof typeof CANVAS_SIZES; background: Background }) {
+/** Zjednodušený náhľad (použije sa, kým sa skutočný náhľad nenačíta alebo ak nie je dostupné meranie). */
+function ThumbFallback({ widgets, aspect, background }: { widgets: WidgetInstance[]; aspect: keyof typeof CANVAS_SIZES; background: Background }) {
   const c = CANVAS_SIZES[aspect];
   return (
     <svg viewBox={`0 0 ${c.w} ${c.h}`} role="img" aria-hidden className="block w-full rounded-lg" style={{ aspectRatio: `${c.w} / ${c.h}`, ...backgroundStyle(background) }}>
@@ -426,5 +428,89 @@ export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, backgrou
         </g>
       ))}
     </svg>
+  );
+}
+
+const noopUpdate = () => undefined;
+
+/** Skutočný (nehybný a nedotykový) obraz widgetu v náhľade – rovnaké vykreslenie ako na ploche. */
+function ThumbWidget({ widget }: { widget: WidgetInstance }) {
+  const def = getWidgetDefinition(widget.type);
+  const bg = widget.colors.bg;
+  const fg = widget.colors.fg ?? (bg ? contrastText(bg) : undefined);
+  const frameless = !!def.frameless && !bg;
+  const Comp = def.Component;
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: widget.x,
+        top: widget.y,
+        width: widget.w,
+        height: widget.h,
+        zIndex: widget.z + 1,
+        background: bg ?? (frameless ? 'transparent' : 'var(--widget-bg)'),
+        color: fg ?? 'var(--widget-fg)',
+        borderRadius: 24,
+        overflow: 'hidden',
+        boxShadow: frameless ? 'none' : '0 6px 20px rgba(0,0,0,.16)',
+      }}
+    >
+      <WidgetBoundary label={t(def.label)}>
+        <Comp widget={widget} config={widget.config} update={noopUpdate} mode="present" />
+      </WidgetBoundary>
+    </div>
+  );
+}
+
+/**
+ * Náhľad obrazovky: skutočne vykreslené widgety zmenšené na šírku karty. Vykreslia sa až keď je náhľad vo výhľade
+ * (šetrí výkon pri dlhých zoznamoch); dovtedy (a bez merania veľkosti) sa ukáže zjednodušená kresba.
+ */
+export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, background }: { widgets: WidgetInstance[]; aspect: keyof typeof CANVAS_SIZES; background: Background }) {
+  const c = CANVAS_SIZES[aspect];
+  const box = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    setWidth(el.clientWidth);
+    let ro: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(() => setWidth(el.clientWidth));
+      ro.observe(el);
+    }
+    let io: IntersectionObserver | undefined;
+    if (typeof IntersectionObserver !== 'undefined') {
+      io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && (setVisible(true), io?.disconnect()), { rootMargin: '200px' });
+      io.observe(el);
+    }
+    return () => {
+      ro?.disconnect();
+      io?.disconnect();
+    };
+  }, []);
+  const scale = width / c.w;
+  const live = visible && width > 0;
+  const runtime = useMemo(() => ({ ...defaultRuntime, widgets, scale }), [widgets, scale]);
+  return (
+    <div ref={box} aria-hidden className="relative block w-full overflow-hidden rounded-lg" style={{ aspectRatio: `${c.w} / ${c.h}`, ...backgroundStyle(background) }}>
+      {live ? (
+        <RuntimeContext.Provider value={runtime}>
+          <div
+            // @ts-expect-error `inert` je vo väčšine typov React ešte neúplne podporované
+            inert=""
+            style={{ position: 'absolute', left: 0, top: 0, width: c.w, height: c.h, transform: `scale(${scale})`, transformOrigin: '0 0', pointerEvents: 'none', userSelect: 'none' }}
+          >
+            {sortByZ(widgets).map((w) => (
+              <ThumbWidget key={w.id} widget={w} />
+            ))}
+          </div>
+        </RuntimeContext.Provider>
+      ) : (
+        <ThumbFallback widgets={widgets} aspect={aspect} background={background} />
+      )}
+    </div>
   );
 });

@@ -118,13 +118,13 @@ function MindmapWidget({ widget, config, update }: WidgetProps<Config>) {
     setConfirm(null);
     wantFocus.current = focus;
   };
-  const startEdit = (id: string) => {
-    const n = nodes.find((x) => x.id === id);
-    if (!n) return;
+  const startEdit = (id: string, initial?: string) => {
+    const text = initial ?? nodes.find((x) => x.id === id)?.text;
+    if (text === undefined) return;
     finished.current = false;
     setSelected(id);
     setConfirm(null);
-    setDraft(n.text);
+    setDraft(text);
     setEditing(id);
   };
   const add = (kind: 'child' | 'sibling', id: string) => {
@@ -133,7 +133,7 @@ function MindmapWidget({ widget, config, update }: WidgetProps<Config>) {
     if (!r.id) return;
     newIds.current.add(r.id);
     commit(r.nodes);
-    startEdit(r.id);
+    startEdit(r.id, '');
   };
   const finishEdit = (id: string, value: string | null) => {
     if (finished.current) return;

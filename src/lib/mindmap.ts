@@ -113,8 +113,9 @@ export function addChild(nodes: readonly MindNode[], parentId: string, text = ''
   if (!canAdd(nodes) || !nodes.some((n) => n.id === parentId)) return { nodes: [...nodes] };
   const nid = id ?? newNodeId(nodes);
   const next = nodes.map((n) => (n.id === parentId && n.collapsed ? { ...n, collapsed: false } : n));
-  // nový uzol sa zaradí za posledný existujúci uzol podstromu rodiča (poradie súrodencov = poradie v poli)
-  const last = Math.max(...subtreeIds(nodes, parentId).map((i) => nodes.findIndex((n) => n.id === i)));
+  // poradie súrodencov = poradie v poli: nový uzol ide za posledného súrodenca (alebo hneď za rodiča)
+  let last = nodes.findIndex((n) => n.id === parentId);
+  nodes.forEach((n, i) => n.parent === parentId && (last = i));
   next.splice(last + 1, 0, { id: nid, parent: parentId, text: text.slice(0, MAX_TEXT), collapsed: false });
   return { nodes: next, id: nid };
 }
@@ -126,9 +127,8 @@ export function addSibling(nodes: readonly MindNode[], id: string, text = '', ni
   if (n.parent === null) return addChild(nodes, id, text, nid);
   if (!canAdd(nodes)) return { nodes: [...nodes] };
   const newId = nid ?? newNodeId(nodes);
-  const last = Math.max(...subtreeIds(nodes, id).map((i) => nodes.findIndex((x) => x.id === i)));
   const next = [...nodes];
-  next.splice(last + 1, 0, { id: newId, parent: n.parent, text: text.slice(0, MAX_TEXT), collapsed: false });
+  next.splice(nodes.findIndex((x) => x.id === id) + 1, 0, { id: newId, parent: n.parent, text: text.slice(0, MAX_TEXT), collapsed: false });
   return { nodes: next, id: newId };
 }
 

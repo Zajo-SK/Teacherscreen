@@ -88,4 +88,21 @@ trailer<</Root 1 0 R/Size 8>>
     await w.getByRole('button', { name: /Nasledujúca/ }).click();
     await expect(w).toContainText('2 / 2');
   });
+  test('myšlienková mapa: Tab pridá vetvu, text sa zapíše do SVG a Delete na vetve nezmaže widget', async ({ page }) => {
+    await openApp(page);
+    await newScreen(page);
+    await addWidget(page, 'mindmap');
+    const w = widget(page, 'mindmap');
+    const root = w.getByRole('treeitem').first();
+    await root.click();
+    await page.keyboard.press('Tab');
+    await page.keyboard.type('Vetva A');
+    await page.keyboard.press('Enter');
+    await expect(w.getByTestId('mindmap-svg')).toContainText('Vetva A');
+    await expect(w.getByRole('treeitem', { name: /Vetva A/ })).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Delete');
+    await expect(w.getByRole('treeitem')).toHaveCount(1);
+    await expect(widget(page, 'mindmap')).toHaveCount(1);
+    await page.screenshot({ path: 'test-results/mindmap.png' });
+  });
 });

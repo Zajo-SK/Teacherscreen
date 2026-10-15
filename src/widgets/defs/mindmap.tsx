@@ -241,7 +241,9 @@ function MindmapWidget({ widget, config, update }: WidgetProps<Config>) {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = `${(root.text || 'mindmap').replace(/[^\p{L}\p{N}]+/gu, '-').slice(0, 40)}.png`;
+      document.body.appendChild(a);
       a.click();
+      a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
     } catch {
       setNotice(t('w.mindmap.exportFail'));

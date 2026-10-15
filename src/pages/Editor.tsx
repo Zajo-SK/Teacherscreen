@@ -131,8 +131,8 @@ export function Editor({ id }: { id: string }) {
               <SelectionBar screenId={id} />
             </div>
           </div>
-          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex items-end gap-2 px-3">
-            <ScreenSwitcher screenId={id} />
+          <ScreenSwitcher screenId={id} />
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-[216px]">
             <WidgetBar screenId={id} />
           </div>
         </main>

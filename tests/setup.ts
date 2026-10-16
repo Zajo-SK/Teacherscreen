@@ -20,3 +20,9 @@ if (typeof HTMLDialogElement !== 'undefined' && !HTMLDialogElement.prototype.sho
     this.removeAttribute('open');
   };
 }
+
+// Predvolená veľkosť okna v testoch (nová obrazovka dostane pomer strán podľa okna).
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'innerWidth', { value: 1920, configurable: true, writable: true });
+  Object.defineProperty(window, 'innerHeight', { value: 1080, configurable: true, writable: true });
+}

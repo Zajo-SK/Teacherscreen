@@ -83,6 +83,8 @@ export const pl: Dictionary = {
   'bar.expand': "Widżety",
   'bar.prevScreen': "Poprzedni ekran",
   'bar.nextScreen': "Następny ekran",
+  'editor.headerShow': "Menu",
+  'editor.headerHide': "Ukryj górne menu",
   'editor.palette': 'Widżety',
   'editor.palette.hint': 'Kliknij, aby dodać widżet na planszę.',
   'editor.inspector': 'Właściwości',

@@ -24,6 +24,7 @@ import { createWidget, getWidgetDefinition, sanitizeConfig } from '@/widgets/reg
 import { openStorage, type StorageAdapter } from '@/storage/db';
 import { AutoSaver, type SaveStatus } from '@/storage/autosave';
 import { t } from '@/i18n';
+import { bestAspect } from '@/editor/aspects';
 import { addTombstone } from '@/lib/tombstones';
 
 export interface Toast {
@@ -213,7 +214,7 @@ export const useApp = create<AppState>()((set, get) => {
     // ---- obrazovky
     createScreen(opts = {}) {
       const order = Object.values(get().screens).length;
-      const s = buildScreen({ name: opts.name ?? t('home.newScreenName'), deckId: opts.deckId ?? null, order });
+      const s = buildScreen({ name: opts.name ?? t('home.newScreenName'), deckId: opts.deckId ?? null, order, aspect: bestAspect() });
       setScreen(s);
       saver?.markScreen(s.id);
       return s.id;
@@ -221,7 +222,7 @@ export const useApp = create<AppState>()((set, get) => {
     createFromTemplate(templateId) {
       const tpl = getTemplate(templateId);
       if (!tpl) return null;
-      const s = screenFromTemplate(tpl);
+      const s = ops.setAspect(screenFromTemplate(tpl), bestAspect());
       setScreen(s);
       saver?.markScreen(s.id);
       return s.id;

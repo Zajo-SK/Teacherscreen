@@ -82,6 +82,8 @@ export const ru: Dictionary = {
   'bar.expand': "Виджеты",
   'bar.prevScreen': "Предыдущий экран",
   'bar.nextScreen': "Следующий экран",
+  'editor.headerShow': "Меню",
+  'editor.headerHide': "Скрыть верхнее меню",
   'editor.palette': 'Виджеты',
   'editor.palette.hint': 'Нажмите, чтобы добавить виджет на доску.',
   'editor.inspector': 'Свойства',

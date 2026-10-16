@@ -146,7 +146,7 @@ export function Stage({ screenId, mode, bleed = false }: { screenId: string; mod
     const host = hostRef.current;
     if (!host) return;
     const calc = () => {
-      const pad = mode === 'edit' ? 24 : 0;
+      const pad = 0;
       const s = Math.min((host.clientWidth - pad) / canvas.w, (host.clientHeight - pad) / canvas.h);
       if (s > 0 && Number.isFinite(s)) setScale(s);
     };
@@ -308,7 +308,7 @@ export function Stage({ screenId, mode, bleed = false }: { screenId: string; mod
 
   return (
     <div ref={hostRef} className="relative flex size-full items-center justify-center overflow-hidden" data-testid="stage-host">
-      <div style={{ width: canvas.w * scale, height: canvas.h * scale, position: 'relative', flex: 'none', boxShadow: mode === 'edit' ? (bleed ? '0 0 0 2px rgba(255,255,255,.75), 0 0 0 3px rgba(0,0,0,.25)' : '0 10px 40px rgba(0,0,0,.25)') : undefined, borderRadius: mode === 'edit' ? 8 : 0, overflow: 'hidden', ...(bleed ? {} : backgroundStyle(screen.background)) }}>
+      <div style={{ width: canvas.w * scale, height: canvas.h * scale, position: 'relative', flex: 'none', boxShadow: mode === 'edit' && !bleed ? '0 10px 40px rgba(0,0,0,.25)' : undefined, borderRadius: mode === 'edit' && !bleed ? 8 : 0, overflow: 'hidden', ...(bleed ? {} : backgroundStyle(screen.background)) }}>
         <ScreenRuntime screenId={screenId} scale={scale}>
           <div
             ref={stageRef}

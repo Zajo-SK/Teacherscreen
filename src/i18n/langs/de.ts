@@ -82,6 +82,8 @@ export const de: Dictionary = {
   'bar.expand': "Widgets",
   'bar.prevScreen': "Vorheriger Bildschirm",
   'bar.nextScreen': "Nächster Bildschirm",
+  'editor.headerShow': "Menü",
+  'editor.headerHide': "Obere Leiste ausblenden",
   'editor.palette': 'Widgets',
   'editor.palette.hint': 'Klicke, um ein Widget zur Fläche hinzuzufügen.',
   'editor.inspector': 'Eigenschaften',

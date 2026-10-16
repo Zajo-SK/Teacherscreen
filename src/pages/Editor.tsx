@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2 } from 'lucide-react';
 import { Stage, backgroundStyle } from '@/components/Stage';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { t } from '@/i18n';
@@ -56,6 +56,21 @@ export function Editor({ id }: { id: string }) {
   const setRightOpen = useApp((s) => s.setInspectorOpen);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [headerHidden, setHeaderHidden] = useState(() => {
+    try {
+      return localStorage.getItem('ts.header.hidden') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const toggleHeader = (hidden: boolean) => {
+    setHeaderHidden(hidden);
+    try {
+      localStorage.setItem('ts.header.hidden', hidden ? '1' : '0');
+    } catch {
+      /* ignore */
+    }
+  };
   const exists = !!screen;
 
   useEditorShortcuts(id);
@@ -83,10 +98,15 @@ export function Editor({ id }: { id: string }) {
     <div className="relative h-dvh overflow-hidden bg-bg" data-testid="editor-root">
       <div className="absolute inset-0 flex">
         <main data-tour="stage" className="relative min-w-0 flex-1 overflow-hidden" style={backgroundStyle(screen.background)} aria-label={t('editor.canvasLabel')}>
-          <div className="absolute inset-0 pb-28 pt-[76px]">
+          <div className="absolute inset-0">
             <Stage screenId={id} mode="edit" bleed />
           </div>
-          <header className="absolute inset-x-2 top-2 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface/90 px-2 py-2 shadow-lg backdrop-blur">
+          {headerHidden && (
+            <button type="button" className="btn absolute left-2 top-2 z-40 gap-2 rounded-full bg-black/70 px-4 text-white shadow-lg backdrop-blur" data-testid="header-show" onClick={() => toggleHeader(false)}>
+              <ChevronDown size={18} aria-hidden /> {t('editor.headerShow')}
+            </button>
+          )}
+          <header hidden={headerHidden} className="absolute inset-x-2 top-2 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-line bg-surface/90 px-2 py-2 shadow-lg backdrop-blur data-[hidden]:hidden">
             <button type="button" className="btn btn-icon" aria-label={t('editor.home')} title={t('editor.home')} onClick={() => navigate({ name: 'home' })}>
               <Home size={20} aria-hidden />
             </button>
@@ -99,6 +119,9 @@ export function Editor({ id }: { id: string }) {
               onChange={(e) => updateMeta(id, { name: e.target.value })}
             />
             <SaveIndicator />
+            <button type="button" className="btn btn-icon" data-testid="header-hide" aria-label={t('editor.headerHide')} data-tip={t('editor.headerHide')} onClick={() => toggleHeader(true)}>
+              <ChevronUp size={20} aria-hidden />
+            </button>
             <div className="ml-auto flex flex-wrap items-center gap-1">
               <button type="button" className="btn btn-icon" aria-label={t('common.undo')} title={`${t('common.undo')} (Ctrl+Z)`} data-tour="undo" data-testid="undo" disabled={!history?.past.length} onClick={() => undo(id)}>
                 <Undo2 size={20} aria-hidden />

@@ -83,6 +83,8 @@ export const cs: Dictionary = {
   'bar.expand': "Widgety",
   'bar.prevScreen': "Předchozí obrazovka",
   'bar.nextScreen': "Další obrazovka",
+  'editor.headerShow': "Menu",
+  'editor.headerHide': "Skrýt horní menu",
   'editor.palette': 'Widgety',
   'editor.palette.hint': 'Kliknutím přidáte widget na plochu.',
   'editor.inspector': 'Vlastnosti',

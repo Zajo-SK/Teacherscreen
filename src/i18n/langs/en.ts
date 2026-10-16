@@ -83,6 +83,8 @@ export const en: Dictionary = {
   'bar.expand': "Widgets",
   'bar.prevScreen': "Previous screen",
   'bar.nextScreen': "Next screen",
+  'editor.headerShow': "Menu",
+  'editor.headerHide': "Hide top menu",
   'editor.palette': 'Widgets',
   'editor.palette.hint': 'Click to add a widget to the board.',
   'editor.inspector': 'Properties',

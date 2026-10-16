@@ -79,6 +79,8 @@ export const app = {
   'bar.expand': 'Widgety',
   'bar.prevScreen': 'Predošlá obrazovka',
   'bar.nextScreen': 'Ďalšia obrazovka',
+  'editor.headerShow': 'Menu',
+  'editor.headerHide': 'Skryť horné menu',
   'editor.palette': 'Widgety',
   'editor.palette.hint': 'Kliknutím pridáte widget na plochu.',
   'editor.inspector': 'Vlastnosti',

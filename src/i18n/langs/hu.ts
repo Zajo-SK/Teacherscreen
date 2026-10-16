@@ -83,6 +83,8 @@ export const hu: Dictionary = {
   'bar.expand': "Widgetek",
   'bar.prevScreen': "Előző képernyő",
   'bar.nextScreen': "Következő képernyő",
+  'editor.headerShow': "Menü",
+  'editor.headerHide': "Felső menü elrejtése",
   'editor.palette': 'Widgetek',
   'editor.palette.hint': 'Kattintással adhatsz widgetet a munkaterülethez.',
   'editor.inspector': 'Tulajdonságok',

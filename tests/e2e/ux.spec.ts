@@ -85,11 +85,11 @@ test.describe('používateľský zážitok', () => {
     expect(total).toBeGreaterThanOrEqual(30);
     await picker.getByRole('tab', { name: 'Škola' }).click();
     await page.getByTestId('bg-school-chalk').click();
-    const host = page.getByTestId('stage').locator('xpath=..');
+    const host = page.locator('main[data-tour=stage]');
     await expect(host).toHaveCSS('background-image', /data:image\/svg\+xml/);
     await page.waitForTimeout(700);
     await page.reload();
-    await expect(page.getByTestId('stage').locator('xpath=..')).toHaveCSS('background-image', /data:image\/svg\+xml/);
+    await expect(page.locator('main[data-tour=stage]')).toHaveCSS('background-image', /data:image\/svg\+xml/);
   });
 });
 
@@ -120,7 +120,7 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     await expect(page.getByTestId('photo-item')).toHaveCount(1); // fotka s NC licenciou je vyradená
     await page.getByTestId('photo-item').click();
     await expect(page.getByTestId('bg-credit')).toContainText('Peter Fotograf · CC BY-SA 4.0 · Wikimedia Commons');
-    await expect(page.getByTestId('stage').locator('xpath=..')).toHaveCSS('background-image', /data:image\/jpeg/);
+    await expect(page.locator('main[data-tour=stage]')).toHaveCSS('background-image', /data:image\/jpeg/);
     await page.waitForTimeout(700);
     await page.reload();
     await page.getByTestId('bar-background').click();

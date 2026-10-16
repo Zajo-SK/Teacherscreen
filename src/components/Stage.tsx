@@ -122,7 +122,8 @@ const WidgetView = memo(function WidgetView({ widget, rect, mode, selected, scal
   );
 });
 
-export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'present' }) {
+/** `bleed`: pozadie obrazovky kreslí rodič na celú plochu okna, plátno samotné je priehľadné (vidno len jeho okraj v editore). */
+export function Stage({ screenId, mode, bleed = false }: { screenId: string; mode: 'edit' | 'present'; bleed?: boolean }) {
   const screen = useApp((s) => s.screens[screenId]);
   const selection = useApp((s) => s.selection);
   const settings = useApp((s) => s.settings);
@@ -307,7 +308,7 @@ export function Stage({ screenId, mode }: { screenId: string; mode: 'edit' | 'pr
 
   return (
     <div ref={hostRef} className="relative flex size-full items-center justify-center overflow-hidden" data-testid="stage-host">
-      <div style={{ width: canvas.w * scale, height: canvas.h * scale, position: 'relative', flex: 'none', boxShadow: mode === 'edit' ? '0 10px 40px rgba(0,0,0,.25)' : undefined, borderRadius: mode === 'edit' ? 8 : 0, overflow: 'hidden', ...backgroundStyle(screen.background) }}>
+      <div style={{ width: canvas.w * scale, height: canvas.h * scale, position: 'relative', flex: 'none', boxShadow: mode === 'edit' ? (bleed ? '0 0 0 2px rgba(255,255,255,.75), 0 0 0 3px rgba(0,0,0,.25)' : '0 10px 40px rgba(0,0,0,.25)') : undefined, borderRadius: mode === 'edit' ? 8 : 0, overflow: 'hidden', ...(bleed ? {} : backgroundStyle(screen.background)) }}>
         <ScreenRuntime screenId={screenId} scale={scale}>
           <div
             ref={stageRef}

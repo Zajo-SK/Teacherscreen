@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Maximize, Minimize, PencilLine } from 'lucide-react';
-import { Stage } from '@/components/Stage';
+import { Stage, backgroundStyle } from '@/components/Stage';
 import { t } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { fullscreenSupported, toggleFullscreen, useFullscreen } from '@/lib/fullscreen';
@@ -73,8 +73,8 @@ export function Present({ id }: { id: string }) {
   }
 
   return (
-    <main className="relative h-dvh w-screen overflow-hidden bg-black" onPointerMove={poke} onPointerDown={poke} data-testid="present-root">
-      <Stage screenId={id} mode="present" />
+    <main className="relative h-dvh w-screen overflow-hidden bg-black" style={backgroundStyle(screen.background)} onPointerMove={poke} onPointerDown={poke} data-testid="present-root">
+      <Stage screenId={id} mode="present" bleed />
       <div
         className={`absolute right-3 top-3 z-50 flex items-center gap-2 rounded-2xl bg-black/70 p-2 text-white backdrop-blur transition-opacity ${barVisible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}
         role="toolbar"

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2, X } from 'lucide-react';
 import { Stage, backgroundStyle } from '@/components/Stage';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { t } from '@/i18n';
@@ -161,6 +161,11 @@ export function Editor({ id }: { id: string }) {
         </main>
         {rightOpen && (
           <aside className="absolute inset-y-0 right-0 z-30 w-80 overflow-auto max-xl:pt-[76px] border-l border-line bg-surface shadow-xl xl:static xl:shadow-none" data-testid="inspector">
+            <div className="sticky top-0 z-10 flex justify-end bg-surface/95 px-2 pt-2 backdrop-blur">
+              <button type="button" className="btn btn-icon btn-ghost" data-testid="inspector-close" aria-label={t('editor.inspectorClose')} data-tip={t('editor.inspectorClose')} onClick={() => setRightOpen(false)}>
+                <X size={20} aria-hidden />
+              </button>
+            </div>
             <ScreenRuntime screenId={id} scale={1}>
               <Inspector screenId={id} />
             </ScreenRuntime>

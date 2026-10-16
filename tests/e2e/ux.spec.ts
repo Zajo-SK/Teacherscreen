@@ -133,3 +133,25 @@ test.describe('fotky z internetu (Wikimedia Commons – sieť je nahradená)', (
     await expect(page.getByTestId('photo-error')).toBeVisible();
   });
 });
+
+test.describe('drobné vylepšenia ovládania', () => {
+  test('panel nastavení sa dá zavrieť krížikom', async ({ page }) => {
+    await openApp(page);
+    await newScreen(page);
+    await expect(page.getByTestId('inspector')).toBeVisible();
+    await page.getByTestId('inspector-close').click();
+    await expect(page.getByTestId('inspector')).toHaveCount(0);
+  });
+
+  test('názov triedy sa dá celý vymazať a napísať nový (bez vracania predvoleného textu)', async ({ page }) => {
+    await openApp(page);
+    await page.getByRole('button', { name: 'Triedy' }).click();
+    await page.getByTestId('new-class').click();
+    const name = page.locator('#class-name');
+    await name.fill('');
+    await expect(name).toHaveValue('');
+    await name.pressSequentially('7. A');
+    await expect(name).toHaveValue('7. A');
+    await expect(page.getByTestId('class-list')).toContainText('7. A');
+  });
+});

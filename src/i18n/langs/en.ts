@@ -85,6 +85,7 @@ export const en: Dictionary = {
   'bar.nextScreen': "Next screen",
   'editor.headerShow': "Menu",
   'editor.headerHide': "Hide top menu",
+  'editor.inspectorClose': "Close settings panel",
   'editor.palette': 'Widgets',
   'editor.palette.hint': 'Click to add a widget to the board.',
   'editor.inspector': 'Properties',
@@ -806,6 +807,8 @@ export const en: Dictionary = {
   'w.vtimer.bar': 'Bar',
   'w.vtimer.note': 'The colour changes from green to orange and red as time runs out. Once linked, it is controlled by the same timer as the Timer widget.',
   // --- widget defaults (evaluated on creation) ---
+  'w.text.titlePlaceholder': "Title",
+  'w.text.bodyPlaceholder': "Type here…",
   'w.text.def.title': 'Heading',
   'w.text.def.body': 'Write your text here…',
   'w.steps.def.title': 'Work steps',

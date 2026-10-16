@@ -85,6 +85,7 @@ export const pl: Dictionary = {
   'bar.nextScreen': "Następny ekran",
   'editor.headerShow': "Menu",
   'editor.headerHide': "Ukryj górne menu",
+  'editor.inspectorClose': "Zamknij panel ustawień",
   'editor.palette': 'Widżety',
   'editor.palette.hint': 'Kliknij, aby dodać widżet na planszę.',
   'editor.inspector': 'Właściwości',
@@ -806,6 +807,8 @@ export const pl: Dictionary = {
   'w.vtimer.bar': 'Pasek',
   'w.vtimer.note': 'Kolor zmienia się z zielonego na pomarańczowy i czerwony, gdy czas się kończy. Po połączeniu steruje tym samym minutnikiem co widżet Minutnik.',
   // --- wartości domyślne widżetów (obliczane przy tworzeniu) ---
+  'w.text.titlePlaceholder': "Tytuł",
+  'w.text.bodyPlaceholder': "Pisz tutaj…",
   'w.text.def.title': 'Nagłówek',
   'w.text.def.body': 'Wpisz tutaj tekst…',
   'w.steps.def.title': 'Przebieg pracy',

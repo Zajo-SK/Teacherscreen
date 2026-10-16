@@ -212,8 +212,9 @@ describe('ďalšie widgety', () => {
   });
   it('Textové pole zobrazí nadpis a text', () => {
     render(<WidgetHarness type="text" config={{ title: 'Úloha', body: 'Vypočítaj príklady' }} />);
-    expect(screen.getByText('Úloha')).toBeInTheDocument();
-    expect(screen.getByText('Vypočítaj príklady')).toBeInTheDocument();
+    // nadpis aj text sú priamo upraviteľné polia vo widgete
+    expect(screen.getByDisplayValue('Úloha')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Vypočítaj príklady')).toBeInTheDocument();
   });
   it('Obrázok bez nahraného súboru ponúka nahratie', () => {
     render(<WidgetHarness type="image" />);

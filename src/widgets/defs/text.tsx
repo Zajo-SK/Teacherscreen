@@ -1,4 +1,3 @@
-import { useEffect, useRef, useState } from 'react';
 import { Type } from 'lucide-react';
 import { z } from 'zod';
 import { t } from '@/i18n';
@@ -18,13 +17,12 @@ type Config = z.output<typeof schema>;
 
 const HL: Record<Config['highlight'], string | null> = { none: null, info: '#2563eb', warning: '#f59e0b', success: '#16a34a' };
 
+/** Pole bez rámika, ktoré vyzerá ako bežný text widgetu – učiteľ píše priamo na tabuľu (v editore aj počas prezentácie). */
+const inline = { display: 'block', width: '100%', border: 0, outline: 'none', background: 'transparent', color: 'inherit', font: 'inherit', padding: 0, margin: 0, resize: 'none' } as const;
+
 function TextWidget({ config, update, mode }: WidgetProps<Config>) {
-  const [editing, setEditing] = useState(false);
-  const ref = useRef<HTMLTextAreaElement>(null);
-  useEffect(() => {
-    if (editing) ref.current?.focus();
-  }, [editing]);
   const accent = HL[config.highlight];
+  const showTitle = mode === 'edit' || config.title.trim() !== '';
   return (
     <div
       className="widget-body"
@@ -34,32 +32,34 @@ function TextWidget({ config, update, mode }: WidgetProps<Config>) {
         textAlign: config.align,
         borderLeft: accent ? `16px solid ${accent}` : undefined,
         background: accent ? `color-mix(in srgb, ${accent} 12%, transparent)` : undefined,
+        display: 'flex',
+        flexDirection: 'column',
       }}
-      onDoubleClick={() => mode === 'edit' && setEditing(true)}
     >
-      {config.title && (
-        <div style={{ fontSize: config.fontSize * 1.35, fontWeight: 800, lineHeight: 1.15, marginBottom: config.fontSize * 0.3, overflowWrap: 'anywhere' }}>
-          {config.title}
-        </div>
-      )}
-      {editing ? (
-        <textarea
-          ref={ref}
+      {showTitle && (
+        <input
           data-no-drag
-          className="winput"
-          style={{ height: '70%', fontSize: config.fontSize, padding: 12, textAlign: config.align, lineHeight: 1.3 }}
-          value={config.body}
-          maxLength={4000}
-          aria-label={t('w.text.body')}
-          onChange={(e) => update({ body: e.target.value })}
-          onBlur={() => setEditing(false)}
-          onKeyDown={(e) => e.key === 'Escape' && setEditing(false)}
+          data-testid="text-title"
+          className="text-inline"
+          value={config.title}
+          maxLength={120}
+          placeholder={t('w.text.titlePlaceholder')}
+          aria-label={t('w.text.title')}
+          onChange={(e) => update({ title: e.target.value })}
+          style={{ ...inline, textAlign: config.align, fontSize: config.fontSize * 1.35, fontWeight: 800, lineHeight: 1.15, marginBottom: config.fontSize * 0.3, flex: 'none' }}
         />
-      ) : (
-        <div style={{ fontSize: config.fontSize, lineHeight: 1.3, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', fontWeight: config.bold ? 700 : 400 }}>
-          {config.body}
-        </div>
       )}
+      <textarea
+        data-no-drag
+        data-testid="text-body"
+        className="text-inline"
+        value={config.body}
+        maxLength={4000}
+        placeholder={t('w.text.bodyPlaceholder')}
+        aria-label={t('w.text.body')}
+        onChange={(e) => update({ body: e.target.value })}
+        style={{ ...inline, textAlign: config.align, flex: 1, minHeight: 0, fontSize: config.fontSize, lineHeight: 1.3, overflowWrap: 'anywhere', fontWeight: config.bold ? 700 : 400 }}
+      />
     </div>
   );
 }

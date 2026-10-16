@@ -84,6 +84,7 @@ export const ru: Dictionary = {
   'bar.nextScreen': "Следующий экран",
   'editor.headerShow': "Меню",
   'editor.headerHide': "Скрыть верхнее меню",
+  'editor.inspectorClose': "Закрыть панель настроек",
   'editor.palette': 'Виджеты',
   'editor.palette.hint': 'Нажмите, чтобы добавить виджет на доску.',
   'editor.inspector': 'Свойства',
@@ -804,6 +805,8 @@ export const ru: Dictionary = {
   'w.vtimer.bar': 'Полоса',
   'w.vtimer.note': 'Цвет меняется с зелёного на оранжевый и красный по мере приближения конца. После связывания управляется тем же таймером, что и виджет «Таймер».',
   // --- значения виджетов по умолчанию (вычисляются при создании) ---
+  'w.text.titlePlaceholder': "Заголовок",
+  'w.text.bodyPlaceholder': "Пишите здесь…",
   'w.text.def.title': 'Заголовок',
   'w.text.def.body': 'Напишите текст здесь…',
   'w.steps.def.title': 'Порядок работы',

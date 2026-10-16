@@ -85,6 +85,7 @@ export const hu: Dictionary = {
   'bar.nextScreen': "Következő képernyő",
   'editor.headerShow': "Menü",
   'editor.headerHide': "Felső menü elrejtése",
+  'editor.inspectorClose': "Beállítások panel bezárása",
   'editor.palette': 'Widgetek',
   'editor.palette.hint': 'Kattintással adhatsz widgetet a munkaterülethez.',
   'editor.inspector': 'Tulajdonságok',
@@ -805,6 +806,8 @@ export const hu: Dictionary = {
   'w.vtimer.bar': 'Sáv',
   'w.vtimer.note': 'A szín zöldből narancssárgába, majd pirosba vált, ahogy fogy az idő. Összekapcsolás után ugyanazt az időzítőt vezérli, mint az Időzítő widget.',
   // --- widgetek alapértelmezett értékei (létrehozáskor értékelődnek ki) ---
+  'w.text.titlePlaceholder': "Cím",
+  'w.text.bodyPlaceholder': "Írjon ide…",
   'w.text.def.title': 'Cím',
   'w.text.def.body': 'Írd ide a szöveget…',
   'w.steps.def.title': 'Munkamenet',

@@ -40,7 +40,10 @@ test.describe('akceptačné scenáre', () => {
     // nastavenia v paneli vlastností
     const inspector = page.getByTestId('inspector');
     await inspector.getByLabel('Nadpis', { exact: true }).fill('Dnešná úloha');
-    await expect(text).toContainText('Dnešná úloha');
+    await expect(text.getByTestId('text-title')).toHaveValue('Dnešná úloha');
+    // písanie priamo do widgetu (bez panela nastavení)
+    await text.getByTestId('text-body').fill('Píšem priamo na tabuľu');
+    await expect(inspector.getByRole('textbox', { name: 'Text', exact: true })).toHaveValue('Píšem priamo na tabuľu');
     await inspector.getByLabel('Veľkosť písma').fill('60');
 
     // zmena farby pozadia

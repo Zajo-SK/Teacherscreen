@@ -226,3 +226,13 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .float-slow, .wiggle:hover, .lift, .btn { animation: none; transition: none; }
 }
+
+/* Priame písanie do widgetu Text: zástupný text je jemný, pri fokuse sa ukáže nenápadný podklad. */
+.text-inline::placeholder {
+  color: currentColor;
+  opacity: 0.35;
+}
+.text-inline:focus {
+  background: color-mix(in srgb, currentColor 5%, transparent) !important;
+  border-radius: 8px;
+}

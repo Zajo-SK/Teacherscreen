@@ -84,6 +84,7 @@ export const de: Dictionary = {
   'bar.nextScreen': "Nächster Bildschirm",
   'editor.headerShow': "Menü",
   'editor.headerHide': "Obere Leiste ausblenden",
+  'editor.inspectorClose': "Einstellungsleiste schließen",
   'editor.palette': 'Widgets',
   'editor.palette.hint': 'Klicke, um ein Widget zur Fläche hinzuzufügen.',
   'editor.inspector': 'Eigenschaften',
@@ -804,6 +805,8 @@ export const de: Dictionary = {
   'w.vtimer.bar': 'Balken',
   'w.vtimer.note': 'Die Farbe wechselt von Grün über Orange zu Rot, wenn die Zeit knapp wird. Nach der Verknüpfung steuert derselbe Timer wie im Widget Timer.',
   // --- Standardwerte der Widgets (werden bei der Erstellung ausgewertet) ---
+  'w.text.titlePlaceholder': "Überschrift",
+  'w.text.bodyPlaceholder': "Hier schreiben…",
   'w.text.def.title': 'Überschrift',
   'w.text.def.body': 'Schreibe hier deinen Text…',
   'w.steps.def.title': 'Arbeitsablauf',

@@ -242,6 +242,8 @@ export const widgets = {
   'w.vtimer.bar': 'Lišta',
   'w.vtimer.note': 'Farba sa mení zo zelenej na oranžovú a červenú, keď sa čas blíži ku koncu. Po prepojení ovláda ten istý časovač ako widget Časovač.',
   // --- predvolené hodnoty widgetov (vyhodnocujú sa pri vytvorení) ---
+  'w.text.titlePlaceholder': 'Nadpis',
+  'w.text.bodyPlaceholder': 'Píšte sem…',
   'w.text.def.title': 'Nadpis',
   'w.text.def.body': 'Sem napíšte text…',
   'w.steps.def.title': 'Postup práce',

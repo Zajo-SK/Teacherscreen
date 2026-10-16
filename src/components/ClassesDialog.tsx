@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { ConfirmDialog, Modal } from './ui';
 import { NamesEditor } from '@/widgets/NamesEditor';
@@ -20,6 +20,9 @@ export function ClassesDialog({ open, onClose }: { open: boolean; onClose: () =>
   const [confirm, setConfirm] = useState<string | null>(null);
   const list = Object.values(classes).sort((a, b) => a.name.localeCompare(b.name, getLocale(), { numeric: true }));
   const cur = selected ? classes[selected] : undefined;
+  // Názov sa píše do lokálneho konceptu: prázdne pole ani medzery na konci sa počas písania neprepíšu predvoleným textom.
+  const [nameDraft, setNameDraft] = useState('');
+  useEffect(() => setNameDraft(cur?.name ?? ''), [cur?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <Modal open={open} onClose={onClose} title={t('classes.title')} wide>
@@ -51,7 +54,20 @@ export function ClassesDialog({ open, onClose }: { open: boolean; onClose: () =>
                 {t('classes.name')}
               </label>
               <div className="mb-3 flex gap-2">
-                <input id="class-name" className="input" value={cur.name} maxLength={80} onChange={(e) => saveClass({ id: cur.id, name: e.target.value, names: cur.names })} />
+                <input
+                  id="class-name"
+                  className="input"
+                  value={nameDraft}
+                  maxLength={80}
+                  placeholder={t('classes.untitled')}
+                  onChange={(e) => {
+                    setNameDraft(e.target.value);
+                    if (e.target.value.trim()) saveClass({ id: cur.id, name: e.target.value, names: cur.names });
+                  }}
+                  onBlur={() => {
+                    if (!nameDraft.trim()) setNameDraft(cur.name);
+                  }}
+                />
                 <button type="button" className="btn btn-danger btn-icon" aria-label={`${t('common.delete')}: ${cur.name}`} onClick={() => setConfirm(cur.id)}>
                   <Trash2 size={18} aria-hidden />
                 </button>

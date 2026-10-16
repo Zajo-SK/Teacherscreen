@@ -85,6 +85,7 @@ export const cs: Dictionary = {
   'bar.nextScreen': "Další obrazovka",
   'editor.headerShow': "Menu",
   'editor.headerHide': "Skrýt horní menu",
+  'editor.inspectorClose': "Zavřít panel nastavení",
   'editor.palette': 'Widgety',
   'editor.palette.hint': 'Kliknutím přidáte widget na plochu.',
   'editor.inspector': 'Vlastnosti',
@@ -805,6 +806,8 @@ export const cs: Dictionary = {
   'w.vtimer.bar': 'Lišta',
   'w.vtimer.note': 'Barva se mění ze zelené na oranžovou a červenou, když se čas blíží ke konci. Po propojení ovládá stejný časovač jako widget Časovač.',
   // --- výchozí hodnoty widgetů (vyhodnocují se při vytvoření) ---
+  'w.text.titlePlaceholder': "Nadpis",
+  'w.text.bodyPlaceholder': "Pište sem…",
   'w.text.def.title': 'Nadpis',
   'w.text.def.body': 'Sem napište text…',
   'w.steps.def.title': 'Postup práce',

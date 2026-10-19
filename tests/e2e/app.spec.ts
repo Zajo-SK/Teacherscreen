@@ -220,6 +220,7 @@ test.describe('akceptačné scenáre', () => {
 
     // poradie vrstiev
     const zBefore = await dice.evaluate((e) => Number((e as HTMLElement).style.zIndex));
+    await openSection(page, 'w-arrange'); // zarovnanie a vrstvy sú v paneli nastavení
     await page.getByRole('button', { name: 'Úplne dopredu' }).click();
     const zAfter = await dice.evaluate((e) => Number((e as HTMLElement).style.zIndex));
     expect(zAfter).toBeGreaterThan(zBefore);
@@ -237,6 +238,7 @@ test.describe('akceptačné scenáre', () => {
     await page.mouse.move(sb.x + sb.width - 3, sb.y + sb.height - 3, { steps: 6 });
     await page.mouse.up();
     await expect(page.locator('[data-selected]')).toHaveCount(2);
+    await openSection(page, 'w-arrange'); // zarovnanie a vrstvy sú v paneli nastavení
     await page.getByRole('button', { name: 'Zarovnať doľava' }).click();
     const xs = await Promise.all([widget(page, 'dice'), widget(page, 'traffic')].map(async (w) => (await rectOf(w)).x));
     expect(xs[0]).toBe(xs[1]);

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { addWidget, newScreen, openApp, openSection, widget } from './helpers';
+import { addWidget, newScreen, openApp, openSection, waitSaved, widget } from './helpers';
 
 test.describe('používateľský zážitok', () => {
   test('úvodná prehliadka sa ukáže pri prvom otvorení, dá sa prejsť a už sa nevracia', async ({ page }) => {
@@ -53,18 +53,19 @@ test.describe('používateľský zážitok', () => {
     await expect(page.getByRole('tooltip')).toContainText('Zavrieť');
   });
 
-  test('nastavenia widgetu sa dajú nájsť: tlačidlo „Nastavenia“ aj koliesko na widgete (aj na užšej obrazovke)', async ({ page }) => {
+  test('nastavenia widgetu sa dajú nájsť cez koliesko na widgete (aj na užšej obrazovke); nad plochou nie je lišta úprav', async ({ page }) => {
     await page.addInitScript(() => localStorage.setItem('ts.notour', '1'));
     await page.setViewportSize({ width: 900, height: 768 });
     await openApp(page);
     await newScreen(page, false);
     await addWidget(page, 'timer');
     await expect(page.getByTestId('inspector')).toHaveCount(0); // panel je predvolene skrytý obrazovke je panel skrytý…
-    await page.getByTestId('widget-settings-btn').click(); // …otvorí ho tlačidlo v lište
+    await page.getByTestId('widget-gear').click(); // …otvorí ho koliesko na widgete
     await expect(page.getByTestId('inspector').getByLabel('Minúty')).toBeVisible();
     await page.getByTestId('inspector-toggle').click();
     await expect(page.getByTestId('inspector')).toHaveCount(0);
-    await page.getByTestId('widget-gear').click(); // …alebo koliesko priamo na widgete
+    await page.getByTestId('widget-gear').click(); // …a znova ho otvorí
+    await expect(page.getByRole('toolbar', { name: 'Zarovnanie' })).toHaveCount(0); // zarovnanie je v zbalenej sekcii panela
     await expect(page.getByTestId('inspector').getByLabel('Minúty')).toBeVisible();
     await page.getByTestId('inspector').getByLabel('Minúty').fill('7');
     await expect(page.getByTestId('timer-display')).toHaveText('07:00');
@@ -153,5 +154,26 @@ test.describe('drobné vylepšenia ovládania', () => {
     await name.pressSequentially('7. A');
     await expect(name).toHaveValue('7. A');
     await expect(page.getByTestId('class-list')).toContainText('7. A');
+  });
+  test('veľkosť obsahu plochy: „−“ zmenší widgety na obrazovke, nastavenie sa uloží a „+“ ho vráti', async ({ page }) => {
+    await openApp(page);
+    await newScreen(page, false);
+    await addWidget(page, 'timer');
+    const w = widget(page, 'timer');
+    const before = (await w.boundingBox())!;
+    await expect(page.getByTestId('zoom-value')).toHaveText('100 %');
+    await expect(page.getByTestId('zoom-in')).toBeDisabled();
+    await page.getByTestId('zoom-out').click();
+    await page.getByTestId('zoom-out').click();
+    await expect(page.getByTestId('zoom-value')).toHaveText('80 %');
+    const after = (await w.boundingBox())!;
+    expect(after.width / before.width).toBeCloseTo(0.8, 1);
+    await waitSaved(page);
+    await page.reload();
+    await expect(page.getByTestId('zoom-value')).toHaveText('80 %');
+    await page.getByTestId('zoom-in').click();
+    await page.getByTestId('zoom-in').click();
+    await expect(page.getByTestId('zoom-value')).toHaveText('100 %');
+    expect((await widget(page, 'timer').boundingBox())!.width).toBeCloseTo(before.width, 0);
   });
 });

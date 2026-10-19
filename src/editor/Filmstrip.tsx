@@ -28,7 +28,7 @@ export function Filmstrip({ screenId }: { screenId: string }) {
               onClick={() => navigate({ name: 'edit', id: s.id })}
               className="block w-full rounded-lg border-2 border-line p-0.5 text-left aria-[current=page]:border-primary"
             >
-              <ScreenThumb widgets={s.widgets} aspect={s.aspect} background={s.background} />
+              <ScreenThumb widgets={s.widgets} aspect={s.aspect} zoom={s.zoom} background={s.background} />
               <span className="block truncate px-1 text-xs font-medium">
                 {i + 1}. {s.name}
               </span>

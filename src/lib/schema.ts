@@ -1,7 +1,9 @@
 import { z } from 'zod';
 import { t } from '@/i18n';
 import {
-  CANVAS_SIZES,
+  canvasOf,
+  isZoomLevel,
+  type Size,
   type ClassList,
   type GroupRules,
   DEFAULT_BACKGROUND,
@@ -53,12 +55,11 @@ export function sanitizeBackground(raw: unknown): Background {
 const num = (v: unknown, def: number) => (typeof v === 'number' && Number.isFinite(v) ? v : def);
 const text = (v: unknown, max: number, def = '') => (typeof v === 'string' ? v.slice(0, max) : def);
 
-function sanitizeWidget(raw: unknown, aspect: AspectId, seen: Set<string>): WidgetInstance | null {
+function sanitizeWidget(raw: unknown, canvas: Size, seen: Set<string>): WidgetInstance | null {
   if (!raw || typeof raw !== 'object') return null;
   const r = raw as Record<string, unknown>;
   if (!isWidgetType(r.type)) return null;
   const def = getWidgetDefinition(r.type);
-  const canvas = CANVAS_SIZES[aspect];
   let id = text(r.id, 64);
   if (!id || seen.has(id)) id = uid();
   seen.add(id);
@@ -108,12 +109,14 @@ export function sanitizeScreen(raw: unknown, opts: { keepId?: boolean } = {}): S
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new ImportError('format', 'Neplatná obrazovka.');
   const migrated = migrateScreenData(raw as Record<string, unknown>);
   const aspect: AspectId = migrated.aspect === '16:10' || migrated.aspect === '4:3' ? migrated.aspect : '16:9';
+  const zoom = isZoomLevel(migrated.zoom) && migrated.zoom !== 1 ? migrated.zoom : undefined;
+  const canvas = canvasOf({ aspect, zoom });
   const list = Array.isArray(migrated.widgets) ? migrated.widgets : [];
   const seen = new Set<string>();
   const widgets: WidgetInstance[] = [];
   let skipped = 0;
   for (const w of list.slice(0, MAX_WIDGETS_PER_SCREEN)) {
-    const sw = sanitizeWidget(w, aspect, seen);
+    const sw = sanitizeWidget(w, canvas, seen);
     if (sw) widgets.push(sw);
     else skipped++;
   }
@@ -131,6 +134,7 @@ export function sanitizeScreen(raw: unknown, opts: { keepId?: boolean } = {}): S
       name: text(migrated.name, 120, t('home.untitled')) || t('home.untitled'),
       description: text(migrated.description, 500),
       aspect,
+      ...(zoom ? { zoom } : {}),
       background: sanitizeBackground(migrated.background),
       widgets,
       deckId: typeof migrated.deckId === 'string' ? migrated.deckId.slice(0, 64) : null,

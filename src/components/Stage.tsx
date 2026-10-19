@@ -1,6 +1,6 @@
 import { Component, memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type ErrorInfo, type PointerEvent as RPointerEvent, type ReactNode } from 'react';
 import { GripHorizontal, Lock, LockOpen, Settings2 } from 'lucide-react';
-import { CANVAS_SIZES, type Background, type WidgetInstance } from '@/types';
+import { canvasOf, type AspectId, type Background, type WidgetInstance } from '@/types';
 import { useApp } from '@/store/useApp';
 import { t } from '@/i18n';
 import { clamp, fitRect, rectsIntersect, snap, type Rect } from '@/lib/geometry';
@@ -140,7 +140,9 @@ export function Stage({ screenId, mode, bleed = false }: { screenId: string; mod
   const live = useRef({ screen, selection, scale, settings });
   live.current = { screen, selection, scale, settings };
 
-  const canvas = screen ? CANVAS_SIZES[screen.aspect] : CANVAS_SIZES['16:9'];
+  const aspect = screen?.aspect ?? '16:9';
+  const zoom = screen?.zoom;
+  const canvas = useMemo(() => canvasOf({ aspect, zoom }), [aspect, zoom]);
 
   useLayoutEffect(() => {
     const host = hostRef.current;
@@ -215,7 +217,7 @@ export function Stage({ screenId, mode, bleed = false }: { screenId: string; mod
     if (!g || g.pointerId !== e.pointerId) return;
     const { scale: sc, screen: scr, settings: st } = live.current;
     if (!scr) return;
-    const cv = CANVAS_SIZES[scr.aspect];
+    const cv = canvasOf(scr);
     if (g.kind === 'move') {
       const dx = (e.clientX - g.sx) / sc;
       const dy = (e.clientY - g.sy) / sc;
@@ -417,8 +419,8 @@ export function Stage({ screenId, mode, bleed = false }: { screenId: string; mod
 }
 
 /** Zjednodušený náhľad (použije sa, kým sa skutočný náhľad nenačíta alebo ak nie je dostupné meranie). */
-function ThumbFallback({ widgets, aspect, background }: { widgets: WidgetInstance[]; aspect: keyof typeof CANVAS_SIZES; background: Background }) {
-  const c = CANVAS_SIZES[aspect];
+function ThumbFallback({ widgets, aspect, zoom, background }: { widgets: WidgetInstance[]; aspect: AspectId; zoom?: number; background: Background }) {
+  const c = canvasOf({ aspect, zoom });
   return (
     <svg viewBox={`0 0 ${c.w} ${c.h}`} role="img" aria-hidden className="block w-full rounded-lg" style={{ aspectRatio: `${c.w} / ${c.h}`, ...backgroundStyle(background) }}>
       {sortByZ(widgets).map((w) => (
@@ -468,8 +470,8 @@ function ThumbWidget({ widget }: { widget: WidgetInstance }) {
  * Náhľad obrazovky: skutočne vykreslené widgety zmenšené na šírku karty. Vykreslia sa až keď je náhľad vo výhľade
  * (šetrí výkon pri dlhých zoznamoch); dovtedy (a bez merania veľkosti) sa ukáže zjednodušená kresba.
  */
-export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, background }: { widgets: WidgetInstance[]; aspect: keyof typeof CANVAS_SIZES; background: Background }) {
-  const c = CANVAS_SIZES[aspect];
+export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, zoom, background }: { widgets: WidgetInstance[]; aspect: AspectId; zoom?: number; background: Background }) {
+  const c = canvasOf({ aspect, zoom });
   const box = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
   const [visible, setVisible] = useState(false);
@@ -510,7 +512,7 @@ export const ScreenThumb = memo(function ScreenThumb({ widgets, aspect, backgrou
           </div>
         </RuntimeContext.Provider>
       ) : (
-        <ThumbFallback widgets={widgets} aspect={aspect} background={background} />
+        <ThumbFallback widgets={widgets} aspect={aspect} zoom={zoom} background={background} />
       )}
     </div>
   );

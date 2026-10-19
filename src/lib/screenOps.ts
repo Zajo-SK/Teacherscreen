@@ -1,4 +1,4 @@
-import { CANVAS_SIZES, type AspectId, type Background, type Screen, type WidgetInstance } from '@/types';
+import { canvasOf, sizeOf, type AspectId, type Size, type Background, type Screen, type WidgetInstance } from '@/types';
 import { uid } from './id';
 import { clamp, fitRect, remapForAspect } from './geometry';
 
@@ -16,8 +16,8 @@ export function nextZ(widgets: readonly WidgetInstance[]): number {
   return widgets.reduce((m, w) => Math.max(m, w.z), -1) + 1;
 }
 
-export function addWidget(widgets: WidgetInstance[], w: WidgetInstance, aspect: AspectId): WidgetInstance[] {
-  const canvas = CANVAS_SIZES[aspect];
+export function addWidget(widgets: WidgetInstance[], w: WidgetInstance, aspect: AspectId | Size): WidgetInstance[] {
+  const canvas = sizeOf(aspect);
   const r = fitRect(w, canvas);
   return [...widgets, { ...w, ...r, z: nextZ(widgets) }];
 }
@@ -31,8 +31,8 @@ export function removeWidgets(widgets: WidgetInstance[], ids: readonly string[])
   return normalizeZ(widgets.filter((w) => !set.has(w.id)));
 }
 
-export function setRects(widgets: WidgetInstance[], rects: Record<string, { x: number; y: number; w: number; h: number }>, aspect: AspectId): WidgetInstance[] {
-  const canvas = CANVAS_SIZES[aspect];
+export function setRects(widgets: WidgetInstance[], rects: Record<string, { x: number; y: number; w: number; h: number }>, aspect: AspectId | Size): WidgetInstance[] {
+  const canvas = sizeOf(aspect);
   return widgets.map((w) => {
     const r = rects[w.id];
     if (!r) return w;
@@ -44,10 +44,10 @@ export function setRects(widgets: WidgetInstance[], rects: Record<string, { x: n
 export function cloneWidgets(
   source: readonly WidgetInstance[],
   target: WidgetInstance[],
-  aspect: AspectId,
+  aspect: AspectId | Size,
   offset = 30,
 ): { widgets: WidgetInstance[]; created: WidgetInstance[] } {
-  const canvas = CANVAS_SIZES[aspect];
+  const canvas = sizeOf(aspect);
   let z = nextZ(target);
   const created = sortByZ(source).map((w) => {
     const r = fitRect({ x: w.x + offset, y: w.y + offset, w: w.w, h: w.h }, canvas);
@@ -59,8 +59,8 @@ export function cloneWidgets(
 export type Align = 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom';
 
 /** Zarovná vybrané widgety. Pri jednom widgete voči ploche, pri viacerých voči ich spoločnému ohraničeniu. */
-export function alignWidgets(widgets: WidgetInstance[], ids: readonly string[], how: Align, aspect: AspectId): WidgetInstance[] {
-  const canvas = CANVAS_SIZES[aspect];
+export function alignWidgets(widgets: WidgetInstance[], ids: readonly string[], how: Align, aspect: AspectId | Size): WidgetInstance[] {
+  const canvas = sizeOf(aspect);
   const sel = widgets.filter((w) => ids.includes(w.id) && !w.locked);
   if (sel.length === 0) return widgets;
   const box =
@@ -136,11 +136,28 @@ export function reorder(widgets: WidgetInstance[], ids: readonly string[], how: 
 
 export function setAspect(screen: Screen, aspect: AspectId): Screen {
   if (screen.aspect === aspect) return screen;
-  return { ...screen, aspect, widgets: remapForAspect(screen.widgets, screen.aspect, aspect) };
+  return { ...screen, aspect, widgets: remapForAspect(screen.widgets, canvasOf(screen), canvasOf({ aspect, zoom: screen.zoom })) };
 }
 
-export function moveBy(widgets: WidgetInstance[], ids: readonly string[], dx: number, dy: number, aspect: AspectId): WidgetInstance[] {
-  const canvas = CANVAS_SIZES[aspect];
+/** Zmena veľkosti obsahu: widgety si nechajú rozmery (budú teda pomerne menšie/väčšie), ich stredy sa posunú pomerne. */
+export function setZoom(screen: Screen, zoom: number): Screen {
+  const from = canvasOf(screen);
+  const next: Screen = zoom === 1 ? (({ zoom: _z, ...rest }) => rest)(screen) : { ...screen, zoom };
+  const to = canvasOf(next);
+  if (from.w === to.w && from.h === to.h) return next;
+  const sx = to.w / from.w;
+  const sy = to.h / from.h;
+  return {
+    ...next,
+    widgets: screen.widgets.map((w) => {
+      const r = fitRect({ x: Math.round((w.x + w.w / 2) * sx - w.w / 2), y: Math.round((w.y + w.h / 2) * sy - w.h / 2), w: w.w, h: w.h }, to);
+      return { ...w, ...r };
+    }),
+  };
+}
+
+export function moveBy(widgets: WidgetInstance[], ids: readonly string[], dx: number, dy: number, aspect: AspectId | Size): WidgetInstance[] {
+  const canvas = sizeOf(aspect);
   const set = new Set(ids);
   return widgets.map((w) => (set.has(w.id) && !w.locked ? { ...w, x: clamp(w.x + dx, 0, canvas.w - w.w), y: clamp(w.y + dy, 0, canvas.h - w.h) } : w));
 }
@@ -149,7 +166,8 @@ export interface Snapshot {
   widgets: WidgetInstance[];
   background: Background;
   aspect: AspectId;
+  zoom: number | undefined;
 }
 export function snapshotOf(s: Screen): Snapshot {
-  return { widgets: s.widgets, background: s.background, aspect: s.aspect };
+  return { widgets: s.widgets, background: s.background, aspect: s.aspect, zoom: s.zoom };
 }

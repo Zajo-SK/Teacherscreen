@@ -6,8 +6,9 @@ import { COLOR_PRESETS, ColorField, NumberField, TextField } from '@/components/
 import { getWidgetDefinition } from '@/widgets/registry';
 import { BackgroundPicker } from './BackgroundPicker';
 import { Collapsible } from '@/components/Collapsible';
-import type { WidgetInstance } from '@/types';
-import { CANVAS_SIZES } from '@/types';
+import { ArrangeTools } from './ArrangeTools';
+import type { AspectId, WidgetInstance } from '@/types';
+import { canvasOf } from '@/types';
 
 export function Inspector({ screenId }: { screenId: string }) {
   const screen = useApp((s) => s.screens[screenId]);
@@ -32,7 +33,7 @@ export function Inspector({ screenId }: { screenId: string }) {
             <label className="label" htmlFor="aspect">
               {t('editor.aspect')}
             </label>
-            <select id="aspect" className="input" value={screen.aspect} onChange={(e) => setAspect(screenId, e.target.value as keyof typeof CANVAS_SIZES)}>
+            <select id="aspect" className="input" value={screen.aspect} onChange={(e) => setAspect(screenId, e.target.value as AspectId)}>
               {ASPECTS.map((a) => (
                 <option key={a} value={a}>
                   {a}
@@ -52,7 +53,7 @@ export function Inspector({ screenId }: { screenId: string }) {
   const first = selected[0]!;
   const single = selected.length === 1 ? first : null;
   const def = single ? getWidgetDefinition(single.type) : null;
-  const canvas = CANVAS_SIZES[screen.aspect];
+  const canvas = canvasOf(screen);
 
   const geo = (w: WidgetInstance, key: 'x' | 'y' | 'w' | 'h', label: string, max: number, min = 0) => (
     <NumberField label={label} value={w[key]} min={min} max={max} onChange={(v) => patchWidget(screenId, w.id, { [key]: v })} />
@@ -69,6 +70,9 @@ export function Inspector({ screenId }: { screenId: string }) {
       <Collapsible id="w-colors" title={t('sel.colors')}>
         <ColorField label={t('sel.bg')} value={first.colors.bg} presets={COLOR_PRESETS} autoLabel={t('sel.colorAuto')} onChange={(bg) => setColors(screenId, ids, { bg })} />
         <ColorField label={t('sel.fg')} value={first.colors.fg} presets={COLOR_PRESETS} autoLabel={t('sel.colorAuto')} onChange={(fg) => setColors(screenId, ids, { fg })} />
+      </Collapsible>
+      <Collapsible id="w-arrange" title={t('sel.arrange')}>
+        <ArrangeTools screenId={screenId} />
       </Collapsible>
       {single && (
         <Collapsible id="w-geometry" title={t('sel.position')}>

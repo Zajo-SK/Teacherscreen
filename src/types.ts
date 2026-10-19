@@ -10,6 +10,30 @@ export const CANVAS_SIZES: Record<AspectId, { w: number; h: number }> = {
   '4:3': { w: 1600, h: 1200 },
 };
 
+/** Veľkosť obsahu plochy: 1 = 100 %. Menšia hodnota = väčšia virtuálna plocha, všetko na nej je menšie. */
+export const ZOOM_LEVELS = [1, 0.9, 0.8, 0.7, 0.6, 0.5] as const;
+
+export interface Size {
+  w: number;
+  h: number;
+}
+
+export function isZoomLevel(v: unknown): v is number {
+  return typeof v === 'number' && (ZOOM_LEVELS as readonly number[]).includes(v);
+}
+
+/** Rozmery plochy obrazovky v jednotkách widgetov (pomer strán × veľkosť obsahu). */
+export function canvasOf(s: { aspect: AspectId; zoom?: number }): Size {
+  const base = CANVAS_SIZES[s.aspect];
+  const z = isZoomLevel(s.zoom) ? s.zoom : 1;
+  return z === 1 ? base : { w: Math.round(base.w / z), h: Math.round(base.h / z) };
+}
+
+/** Prijme pomer strán alebo hotové rozmery plochy. */
+export function sizeOf(a: AspectId | Size): Size {
+  return typeof a === 'string' ? CANVAS_SIZES[a] : a;
+}
+
 export type WidgetType =
   | 'text'
   | 'clock'
@@ -72,6 +96,8 @@ export interface Screen {
   name: string;
   description: string;
   aspect: AspectId;
+  /** Veľkosť obsahu (viď ZOOM_LEVELS); chýba = 100 %. */
+  zoom?: number;
   background: Background;
   widgets: WidgetInstance[];
   /** Zostava, do ktorej obrazovka patrí (voliteľné). */

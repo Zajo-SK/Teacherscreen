@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import * as ops from '@/lib/screenOps';
 import { createWidget } from '@/widgets/registry';
 import { buildScreen } from '@/templates';
-import { CANVAS_SIZES, type WidgetInstance } from '@/types';
+import { CANVAS_SIZES, canvasOf, type WidgetInstance } from '@/types';
+import { sanitizeScreen } from '@/lib/schema';
 
 const mk = (x: number, y: number, w = 200, h = 100, z = 0): WidgetInstance => ({ ...createWidget('text', { x, y, w, h, z }), id: `w${x}-${y}-${z}` });
 
@@ -63,6 +64,23 @@ describe('operácie nad widgetmi', () => {
         expect(w.y + w.h).toBeLessThanOrEqual(c.h);
       });
     }
+  });
+  it('veľkosť obsahu zväčší plochu, widgety si nechajú rozmery a návrat ich vráti na pôvodné miesto', () => {
+    const screen = buildScreen({ name: 'x', widgets: [mk(860, 440, 200, 200), mk(1700, 900, 200, 160)] });
+    const small = ops.setZoom(screen, 0.5);
+    expect(small.zoom).toBe(0.5);
+    expect(canvasOf(small)).toEqual({ w: 3840, h: 2160 });
+    expect(small.widgets.map((w) => [w.w, w.h])).toEqual([[200, 200], [200, 160]]);
+    expect(small.widgets[0]).toMatchObject({ x: 1820, y: 980 }); // stred zostal v strede plochy
+    const back = ops.setZoom(small, 1);
+    expect(back.zoom).toBeUndefined();
+    expect(back.widgets.map((w) => [w.x, w.y])).toEqual(screen.widgets.map((w) => [w.x, w.y]));
+    // pomer strán sa mení so zachovanou veľkosťou obsahu
+    const c = canvasOf(ops.setAspect(small, '4:3'));
+    expect(c).toEqual({ w: 3200, h: 2400 });
+    // uloženie a načítanie zachová veľkosť obsahu, neplatnú hodnotu zahodí
+    expect(sanitizeScreen(JSON.parse(JSON.stringify(small))).screen.zoom).toBe(0.5);
+    expect(sanitizeScreen({ ...JSON.parse(JSON.stringify(small)), zoom: 7 }).screen.zoom).toBeUndefined();
   });
   it('moveBy neposunie widget mimo plochu ani zamknutý widget', () => {
     const a = mk(10, 10, 100, 100);

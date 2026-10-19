@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import {
-  CANVAS_SIZES,
+  canvasOf,
   DEFAULT_SETTINGS,
   type AspectId,
   type ClassList,
@@ -102,6 +102,7 @@ interface AppState {
   nudge: (screenId: string, ids: string[], dx: number, dy: number) => void;
   setBackground: (screenId: string, bg: Background) => void;
   setAspect: (screenId: string, aspect: AspectId) => void;
+  setZoom: (screenId: string, zoom: number) => void;
   undo: (screenId: string) => void;
   redo: (screenId: string) => void;
 
@@ -396,17 +397,17 @@ export const useApp = create<AppState>()((set, get) => {
         return null;
       }
       const def = getWidgetDefinition(type);
-      const canvas = CANVAS_SIZES[s.aspect];
+      const canvas = canvasOf(s);
       const n = s.widgets.length % 8;
       const w = Math.min(def.defaultSize.w, canvas.w - 40);
       const h = Math.min(def.defaultSize.h, canvas.h - 40);
       const widget = createWidget(type, { w, h, x: Math.round((canvas.w - w) / 2 + (n - 4) * 30), y: Math.round((canvas.h - h) / 2 + (n - 4) * 24) });
-      mutate(screenId, (x) => ({ ...x, widgets: ops.addWidget(x.widgets, widget, x.aspect) }));
+      mutate(screenId, (x) => ({ ...x, widgets: ops.addWidget(x.widgets, widget, canvasOf(x)) }));
       set({ selection: [widget.id] });
       return widget.id;
     },
     commitRects(screenId, rects) {
-      mutate(screenId, (s) => ({ ...s, widgets: ops.setRects(s.widgets, rects, s.aspect) }));
+      mutate(screenId, (s) => ({ ...s, widgets: ops.setRects(s.widgets, rects, canvasOf(s)) }));
     },
     patchConfig(screenId, widgetId, patch) {
       mutate(
@@ -426,7 +427,7 @@ export const useApp = create<AppState>()((set, get) => {
         if (!w) return s;
         const def = getWidgetDefinition(w.type);
         const next = { ...w, ...patch };
-        const r = fitRect(next, CANVAS_SIZES[s.aspect], def.minSize);
+        const r = fitRect(next, canvasOf(s), def.minSize);
         return { ...s, widgets: ops.patchWidget(s.widgets, widgetId, { ...patch, x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.w), h: Math.round(r.h) }) };
       }, { key: `geo:${widgetId}` });
     },
@@ -467,7 +468,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!src.length || s.widgets.length + src.length > MAX_WIDGETS_PER_SCREEN) return;
       let created: WidgetInstance[] = [];
       mutate(screenId, (x) => {
-        const r = ops.cloneWidgets(src, x.widgets, x.aspect);
+        const r = ops.cloneWidgets(src, x.widgets, canvasOf(x));
         created = r.created;
         return { ...x, widgets: r.widgets };
       });
@@ -491,7 +492,7 @@ export const useApp = create<AppState>()((set, get) => {
       if (!s || !clip.length || s.widgets.length + clip.length > MAX_WIDGETS_PER_SCREEN) return;
       let created: WidgetInstance[] = [];
       mutate(screenId, (x) => {
-        const r = ops.cloneWidgets(clip, x.widgets, x.aspect, 40);
+        const r = ops.cloneWidgets(clip, x.widgets, canvasOf(x), 40);
         created = r.created;
         return { ...x, widgets: r.widgets };
       });
@@ -504,14 +505,14 @@ export const useApp = create<AppState>()((set, get) => {
       if (!from || !to) return;
       const src = from.widgets.filter((w) => ids.includes(w.id));
       if (!src.length || to.widgets.length + src.length > MAX_WIDGETS_PER_SCREEN) return;
-      mutate(toScreenId, (x) => ({ ...x, widgets: ops.cloneWidgets(src, x.widgets, x.aspect, 0).widgets }));
+      mutate(toScreenId, (x) => ({ ...x, widgets: ops.cloneWidgets(src, x.widgets, canvasOf(x), 0).widgets }));
       get().toast(t('editor.copiedToScreen', { name: to.name }), { tone: 'success' });
     },
     reorderWidgets(screenId, ids, how) {
       mutate(screenId, (s) => ({ ...s, widgets: ops.reorder(s.widgets, ids, how) }));
     },
     align(screenId, ids, how) {
-      mutate(screenId, (s) => ({ ...s, widgets: ops.alignWidgets(s.widgets, ids, how, s.aspect) }));
+      mutate(screenId, (s) => ({ ...s, widgets: ops.alignWidgets(s.widgets, ids, how, canvasOf(s)) }));
     },
     distribute(screenId, ids, axis) {
       mutate(screenId, (s) => ({ ...s, widgets: ops.distributeWidgets(s.widgets, ids, axis) }));
@@ -520,10 +521,13 @@ export const useApp = create<AppState>()((set, get) => {
       mutate(screenId, (s) => ({ ...s, widgets: s.widgets.map((w) => (ids.includes(w.id) ? { ...w, locked } : w)) }));
     },
     nudge(screenId, ids, dx, dy) {
-      mutate(screenId, (s) => ({ ...s, widgets: ops.moveBy(s.widgets, ids, dx, dy, s.aspect) }), { key: 'nudge' });
+      mutate(screenId, (s) => ({ ...s, widgets: ops.moveBy(s.widgets, ids, dx, dy, canvasOf(s)) }), { key: 'nudge' });
     },
     setBackground(screenId, background) {
       mutate(screenId, (s) => ({ ...s, background }), { key: 'bg' });
+    },
+    setZoom(screenId, zoom) {
+      mutate(screenId, (s) => ops.setZoom(s, zoom));
     },
     setAspect(screenId, aspect) {
       mutate(screenId, (s) => ops.setAspect(s, aspect));

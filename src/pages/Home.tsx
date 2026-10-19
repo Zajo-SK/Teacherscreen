@@ -27,7 +27,7 @@ function ScreenCard({ screen }: { screen: Screen }) {
   return (
     <article className="card lift flex flex-col overflow-hidden hover:shadow-xl" data-testid="screen-card" aria-label={screen.name}>
       <button type="button" className="block p-2 pb-0 text-left" onClick={() => navigate({ name: 'edit', id: screen.id })} aria-label={`${t('home.edit')}: ${screen.name}`}>
-        <ScreenThumb widgets={screen.widgets} aspect={screen.aspect} background={screen.background} />
+        <ScreenThumb widgets={screen.widgets} aspect={screen.aspect} zoom={screen.zoom} background={screen.background} />
       </button>
       <div className="flex flex-1 flex-col gap-2 p-3">
         <h3 className="truncate text-base font-bold" title={screen.name}>
@@ -238,7 +238,7 @@ export function HomePage() {
           <div className="grid gap-4 [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]" data-testid="recent">
             {recent.map((s) => (
               <button key={s.id} type="button" className="card p-2 text-left hover:bg-surface2" onClick={() => navigate({ name: 'edit', id: s.id })}>
-                <ScreenThumb widgets={s.widgets} aspect={s.aspect} background={s.background} />
+                <ScreenThumb widgets={s.widgets} aspect={s.aspect} zoom={s.zoom} background={s.background} />
                 <span className="mt-2 block truncate px-1 font-semibold">{s.name}</span>
               </button>
             ))}

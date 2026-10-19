@@ -1,5 +1,5 @@
 import type { AspectId, WidgetInstance } from '@/types';
-import { CANVAS_SIZES } from '@/types';
+import { sizeOf, type Size } from '@/types';
 
 export const GRID = 10;
 
@@ -30,10 +30,10 @@ export function rectsIntersect(a: Rect, b: Rect): boolean {
 }
 
 /** Prepočíta rozloženie pri zmene pomeru strán – pomerovo, aby všetko zostalo viditeľné a použiteľné. */
-export function remapForAspect(widgets: WidgetInstance[], from: AspectId, to: AspectId): WidgetInstance[] {
+export function remapForAspect(widgets: WidgetInstance[], from: AspectId | Size, to: AspectId | Size): WidgetInstance[] {
   if (from === to) return widgets;
-  const a = CANVAS_SIZES[from];
-  const b = CANVAS_SIZES[to];
+  const a = sizeOf(from);
+  const b = sizeOf(to);
   const sx = b.w / a.w;
   const sy = b.h / a.h;
   return widgets.map((wd) => {

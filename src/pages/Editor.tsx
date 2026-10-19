@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Check, ChevronDown, ChevronUp, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2, X } from 'lucide-react';
+import { Check, ChevronDown, ChevronUp, CircleAlert, Cloud, Home, Loader2, Maximize, Minimize, PanelRight, Play, Redo2, Settings, Share, Undo2, X, ZoomIn, ZoomOut } from 'lucide-react';
 import { Stage, backgroundStyle } from '@/components/Stage';
 import { SettingsDialog } from '@/components/SettingsDialog';
 import { t } from '@/i18n';
 import { navigate } from '@/lib/router';
 import { fullscreenSupported, toggleFullscreen, useFullscreen } from '@/lib/fullscreen';
 import { useApp } from '@/store/useApp';
+import { ZOOM_LEVELS } from '@/types';
 import { ScreenRuntime } from '@/widgets/ScreenRuntime';
 import { WidgetBar } from '@/editor/WidgetBar';
 import { ScreenSwitcher } from '@/editor/ScreenSwitcher';
 import { Inspector } from '@/editor/Inspector';
-import { SelectionBar } from '@/editor/SelectionBar';
 import { ExportDialog } from '@/editor/ExportDialog';
 import { useEditorShortcuts } from '@/editor/useShortcuts';
 import { CloudScreenButton } from '@/backend/CloudPanel';
@@ -24,6 +24,26 @@ const EDITOR_TOUR: TourStep[] = [
   { target: ['[data-tour=screens]'], title: 'tour.editor.screens.title', text: 'tour.editor.screens.text' },
   { target: ['[data-tour=present]'], title: 'tour.editor.present.title', text: 'tour.editor.present.text' },
 ];
+
+/** Veľkosť obsahu plochy: „−“ zmenší všetko (plocha má viac miesta), „+“ zväčší. Platí aj pri prezentovaní. */
+function ZoomControl({ screenId, zoom }: { screenId: string; zoom: number }) {
+  const setZoom = useApp((s) => s.setZoom);
+  const i = Math.max(0, ZOOM_LEVELS.indexOf(zoom as (typeof ZOOM_LEVELS)[number]));
+  const pct = Math.round(ZOOM_LEVELS[i]! * 100);
+  return (
+    <div className="flex items-center" role="group" aria-label={t('editor.zoom')} data-tip={t('editor.zoomTip')}>
+      <button type="button" className="btn btn-icon" data-testid="zoom-out" aria-label={t('editor.zoomOut')} title={t('editor.zoomOut')} disabled={i >= ZOOM_LEVELS.length - 1} onClick={() => setZoom(screenId, ZOOM_LEVELS[i + 1]!)}>
+        <ZoomOut size={20} aria-hidden />
+      </button>
+      <span className="w-12 text-center text-sm font-semibold tabular-nums" data-testid="zoom-value">
+        {pct} %
+      </span>
+      <button type="button" className="btn btn-icon" data-testid="zoom-in" aria-label={t('editor.zoomIn')} title={t('editor.zoomIn')} disabled={i === 0} onClick={() => setZoom(screenId, ZOOM_LEVELS[i - 1]!)}>
+        <ZoomIn size={20} aria-hidden />
+      </button>
+    </div>
+  );
+}
 
 function SaveIndicator() {
   const status = useApp((s) => s.saveStatus);
@@ -123,6 +143,7 @@ export function Editor({ id }: { id: string }) {
               <ChevronUp size={20} aria-hidden />
             </button>
             <div className="ml-auto flex flex-wrap items-center gap-1">
+              <ZoomControl screenId={id} zoom={screen.zoom ?? 1} />
               <button type="button" className="btn btn-icon" aria-label={t('common.undo')} title={`${t('common.undo')} (Ctrl+Z)`} data-tour="undo" data-testid="undo" disabled={!history?.past.length} onClick={() => undo(id)}>
                 <Undo2 size={20} aria-hidden />
               </button>
@@ -149,11 +170,6 @@ export function Editor({ id }: { id: string }) {
               </button>
             </div>
               </header>
-          <div className="pointer-events-none absolute inset-x-0 top-[76px] z-20 flex justify-center px-2">
-            <div className="pointer-events-auto max-w-full rounded-2xl border border-line bg-surface/95 shadow-lg backdrop-blur empty:hidden">
-              <SelectionBar screenId={id} />
-            </div>
-          </div>
           <ScreenSwitcher screenId={id} />
           <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 flex justify-center px-[216px]">
             <WidgetBar screenId={id} />

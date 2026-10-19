@@ -11,6 +11,25 @@ npm install
 npm run dev          # vývojový server na http://localhost:5173
 ```
 
+## Lokálny vývoj na vlastnom PC (Windows) s Claude Code
+
+V PowerShelli stačí jeden príkaz – nainštaluje Git, Node.js a Claude Code (ak chýbajú), naklonuje projekt do
+`Dokumenty\Teacherscreen`, nainštaluje závislosti a prehliadač pre testy:
+
+```powershell
+irm https://raw.githubusercontent.com/Zajo-SK/Teacherscreen/main/scripts/setup-windows.ps1 | iex
+```
+
+Potom v priečinku projektu:
+
+```powershell
+npm run dev        # aplikácia na http://localhost:5173
+claude             # nová lokálna session s Claude Code (pokyny pre Claude sú v CLAUDE.md)
+claude --teleport  # pokračovať v existujúcej cloudovej session z claude.ai/code
+```
+
+`claude --teleport` treba spustiť v priečinku projektu, s čistým stavom gitu a prihláseným rovnakým účtom claude.ai.
+
 ## Príkazy
 
 | Príkaz | Účel |

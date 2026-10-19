@@ -199,9 +199,9 @@ test.describe('Neprítomní žiaci', () => {
     expect(g.flat().sort()).toEqual(NAMES.filter((n) => !['Žiak02', 'Žiak05', 'Žiak09'].includes(n)));
     await expect(page.getByTestId('groups-status')).toContainText('Žiaci: 9 · Skupiny: 3');
 
-    // priamo vo widgete (panel „Kto je dnes tu“)
+    // z widgetu (okno „Kto je dnes tu“ sa otvorí nad celou obrazovkou)
     await widget(page, 'groups').getByTestId('attendance-open').click();
-    const panel = widget(page, 'groups').getByTestId('attendance-panel');
+    const panel = page.getByTestId('attendance-panel');
     await expect(panel.getByTestId('attendance-count')).toContainText('prítomní 9 z 12');
     await panel.getByRole('switch', { name: 'Žiak05: neprítomný' }).click(); // vrátený späť
     await expect(panel.getByTestId('attendance-count')).toContainText('prítomní 10 z 12');
@@ -216,9 +216,10 @@ test.describe('Neprítomní žiaci', () => {
     await waitSaved(page);
     await page.reload();
     await widget(page, 'groups').getByTestId('attendance-open').click();
-    await expect(widget(page, 'groups').getByTestId('attendance-count')).toContainText('prítomní 9 z 12');
-    await widget(page, 'groups').getByRole('button', { name: 'Všetci prítomní' }).click();
-    await expect(widget(page, 'groups').getByTestId('attendance-count')).toContainText('prítomní 12 z 12');
+    const panel2 = page.getByTestId('attendance-panel');
+    await expect(panel2.getByTestId('attendance-count')).toContainText('prítomní 9 z 12');
+    await panel2.getByRole('button', { name: 'Všetci prítomní' }).click();
+    await expect(panel2.getByTestId('attendance-count')).toContainText('prítomní 12 z 12');
   });
 
   test('Náhodný výber žiaka preskakuje neprítomných', async ({ page }) => {

@@ -1,6 +1,6 @@
 import { TrafficCone } from 'lucide-react';
 import { z } from 'zod';
-import { t } from '@/i18n';
+import { getLocale, t } from '@/i18n';
 import { TextField } from '@/components/forms';
 import { oneOf, str } from '../fields';
 import type { SettingsProps, WidgetDefinition, WidgetProps } from '../types';
@@ -23,11 +23,12 @@ const LIGHTS: { id: Light; color: string; name: 'w.traffic.red' | 'w.traffic.yel
 function TrafficWidget({ widget, config, update }: WidgetProps<Config>) {
   const horizontal = widget.w > widget.h * 1.3;
   const current = LIGHTS.find((l) => l.id === config.active)!;
-  const lampSize = horizontal ? 'min(28cqw, 70cqh)' : 'min(60cqw, 24cqh)';
+  // Text je vždy pod svetlami – vedľa nich mu pri širokom widgete nezostávalo miesto a lámal sa po písmenách.
+  const lampSize = horizontal ? 'min(24cqw, 48cqh)' : 'min(60cqw, 24cqh)';
   return (
     <div
       className="widget-body"
-      style={{ display: 'flex', flexDirection: horizontal ? 'row' : 'column', alignItems: 'center', justifyContent: 'center', gap: '3cqmin', padding: '3cqmin', boxSizing: 'border-box' }}
+      style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3cqmin', padding: '3cqmin', boxSizing: 'border-box' }}
     >
       <div
         role="radiogroup"
@@ -60,11 +61,11 @@ function TrafficWidget({ widget, config, update }: WidgetProps<Config>) {
           );
         })}
       </div>
-      <div style={{ textAlign: 'center', flex: horizontal ? 1 : undefined, minWidth: 0 }}>
-        <div style={{ fontSize: 'min(6cqw, 8cqh)', fontWeight: 800, letterSpacing: '0.08em', color: current.color === '#f59e0b' ? '#b45309' : current.color }}>
+      <div style={{ textAlign: 'center', width: '100%', minWidth: 0 }}>
+        <div style={{ fontSize: horizontal ? 'min(5cqw, 9cqh)' : 'min(6cqw, 8cqh)', fontWeight: 800, letterSpacing: '0.08em', color: current.color === '#f59e0b' ? '#b45309' : current.color }}>
           {t(current.name).toUpperCase()}
         </div>
-        <div style={{ fontSize: horizontal ? 'min(5.5cqw, 14cqh)' : 'min(9cqw, 6cqh)', fontWeight: 700, lineHeight: 1.2, overflowWrap: 'anywhere' }}>{config[current.label]}</div>
+        <div lang={getLocale()} style={{ fontSize: horizontal ? 'min(5.5cqw, 12cqh)' : 'min(9cqw, 6cqh)', fontWeight: 700, lineHeight: 1.2, overflowWrap: 'break-word', hyphens: 'auto' }}>{config[current.label]}</div>
       </div>
     </div>
   );
